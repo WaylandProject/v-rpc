@@ -1,0 +1,6 @@
+.vs/
+.vscode/
+node_modules/
+index.js
+**.map
+dist/
