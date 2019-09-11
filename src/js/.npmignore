@@ -1,4 +1,7 @@
-**/node_modules
+node_modules
+ragemp/cef/node_modules
+ragemp/client/node_modules
+ragemp/server/node_modules
 tsconfig.json
 tslint.json
 **/*.ts
