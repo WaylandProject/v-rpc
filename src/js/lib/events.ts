@@ -7,6 +7,8 @@ export namespace Event {
     export const ReplyToServer = 'vrpc:rts';
     export const ReceiveFromBrowser = 'vrpc:rfb';
     export const ReceiveFromServer = 'vrpc:rfs';
+    export const RedirectNoreplyToServer = 'vrpc:rns';
+    export const RedirectNoreplyToBrowser = 'vrpc:rnb';
     export const RedirectBrowserToServer = 'vrpc:rbs';
     export const RedirectServerToBrowser = 'vrpc:rsb';
   }
