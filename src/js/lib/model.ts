@@ -50,11 +50,6 @@ export interface AsyncBrowserRequest {
   Args: any;
 }
 
-export interface ServerArgs {
-  Player: PlayerMp;
-  Args: any;
-}
-
 export type ResolveAction = (result: Result) => void;
 
 export type BrowserResolveAction = (result: BrowserResult) => void;
