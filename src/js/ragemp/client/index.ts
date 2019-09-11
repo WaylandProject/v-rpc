@@ -1,106 +1,86 @@
 import BrowserRegistry from '../../lib/browserRegistry';
-import { Result, AsyncRequest, Request, BrowserRequest, BrowserResult } from '../../lib/model';
+import {
+  Result,
+  AsyncRequest,
+  Request,
+  BrowserRequest,
+  BrowserResult,
+  AsyncAction,
+  SyncAction,
+  Source
+} from '../../lib/model';
 import { Event } from '../../lib/events';
-
-// tslint:disable-next-line: no-empty-interface
-declare interface BrowserMp {
-  execute(code: string): void;
-}
-declare var mp: any;
-
+import Controller from '../../lib/controller';
+import Registry from '../../lib/registry';
 
 const browserRegistry = new BrowserRegistry<BrowserMp>();
+const registry = new Registry();
+const controller = new Controller(registry);
+const DEFAULT_TIMEOUT = 1000;
 
 // register all browser that were added before this script was initialized
 mp.browsers.forEach((browser: BrowserMp) => {
   browserRegistry.register(browser);
 });
-
-// setup event listeners for the RageMP client
 mp.events.add('browserCreated', (b: BrowserMp) => {
   const uid = browserRegistry.register(b);
-  b.execute(`window.vrpc = {}; window.vrpc.uid = ${uid};`);
+  b.execute(`if (window.vrpc === undefined) { window.vrpc = {}; } window.vrpc.uid = ${uid};`);
 });
 
-
-
-type AsyncAction = (args: any) => void;
-
-const asyncRegistry: Map<string, AsyncAction> = new Map();
-
 export function RegisterAsnycProcedure(name: string, method: AsyncAction): void {
-  asyncRegistry.set(name, method);
+  registry.registerAsyncProcedure(name, method);
 }
-
-type SyncAction = (args: any) => any;
-
-const syncRegistry: Map<string, SyncAction> = new Map();
 
 export function RegisterSyncProcedure(name: string, method: SyncAction): void {
-  syncRegistry.set(name, method);
+  registry.registerSyncProcedure(name, method);
 }
 
-mp.events.add(Event.Noreply, (request: AsyncRequest) => {
-  const action = asyncRegistry.get(request.Name);
-  if (action === undefined) {
+mp.events.add(Event.Noreply, (requestStr: string) => {
+  const request = JSON.parse(requestStr) as AsyncRequest;
+  if (request === undefined) {
     return;
   }
 
-  action(request.Args);
+  controller.noReply(request);
 });
-
-// the reply event is actually only called by the server
 mp.events.add(Event.Client.ReplyToServer, (requestStr: string) => {
   const request = JSON.parse(requestStr) as Request;
   if (request === undefined) {
     return;
   }
 
-  const action = syncRegistry.get(request.Name);
-  if (action === undefined) {
-    return;
-  }
-
-  const result: Result = {
-    Name: request.Name,
-    Id: request.Id,
-    Source: request.Source,
-    Result: action(request.Args)
-  };
-
-  mp.events.callRemote(Event.Server.ReceiveFromClient, JSON.stringify(result));
+  controller.reply(request, (result) => mp.events.callRemote(Event.Server.ReceiveFromClient, JSON.stringify(result)));
 });
-
 mp.events.add(Event.Client.ReplyToBrowser, (requestStr: string) => {
   const request = JSON.parse(requestStr) as BrowserRequest;
   if (request === undefined) {
     return;
   }
 
-  const action = syncRegistry.get(request.Name);
-  if (action === undefined) {
+  const browser = browserRegistry.getBrowser(request.BrowserId);
+  if (browser === undefined) {
     return;
   }
 
-  const result: Result = {
-    Name: request.Name,
-    Source: request.Source,
-    Id: request.Id,
-    Result: action(request.Args)
-  };
+  controller.reply(request, (result: Result) => browser.execute(`window.vrpc.ccallback(${JSON.stringify(result)});`));
+});
+
+mp.events.add(Event.Client.RedirectNoreplyToServer, (requestStr: string) => mp.events.callRemote(Event.Noreply, requestStr));
+mp.events.add(Event.Client.RedirectNoreplyToBrowser, (requestStr: string) => {
+  const request = JSON.parse(requestStr) as BrowserRequest;
+  if (request === undefined) {
+    return;
+  }
 
   const browser = browserRegistry.getBrowser(request.BrowserId);
   if (browser === undefined) {
     return;
   }
 
-  browser.execute(`window.vrpc.callback(${JSON.stringify(result)});`);
+  browser.execute(`window.vrpc.noreply(${requestStr});`);
 });
 
-mp.events.add(Event.Client.RedirectBrowserToServer, (requestStr: string) => {
-  mp.events.callRemote(Event.Server.ReplyToBrowser, requestStr);
-});
-
+mp.events.add(Event.Client.RedirectBrowserToServer, (requestStr: string) => mp.events.callRemote(Event.Server.ReplyToBrowser, requestStr));
 mp.events.add(Event.Client.RedirectServerToBrowser, (browserResultStr: string) => {
   const browserResult = JSON.parse(browserResultStr) as BrowserResult;
   if (browserResult === undefined) {
@@ -112,26 +92,52 @@ mp.events.add(Event.Client.RedirectServerToBrowser, (browserResultStr: string) =
     return;
   }
 
-  const result: Result = {
-    Name: browserResult.Name,
-    Source: browserResult.Source,
-    Id: browserResult.Id,
-    Result: browserResult.Result
-  };
-
-  browser.execute(`window.vrpc.callback(${JSON.stringify(result)});`);
+  browser.execute(`window.vrpc.scallback(${browserResultStr});`);
 });
 
-export function CallServerAsync(name: string, args: any): void {}
+mp.events.add(Event.Client.ReceiveFromServer, (resultStr: string) => {
+  const result = JSON.parse(resultStr) as Result;
+  if (result === undefined) {
+    return;
+  }
 
-export function CallBrowserAsync(name: string, browserId: number, args: any): void {}
+  controller.receive(result);
+});
+mp.events.add(Event.Client.ReceiveFromBrowser, (resultStr: string) => {
+  const result = JSON.parse(resultStr) as Result;
+  if (result === undefined) {
+    return;
+  }
 
-export function CallServerSync(name: string, args: any): Promise<Result> {
-    return new Promise(() => null);
+  controller.receive(result);
+});
+
+export function CallServerAsync(name: string, args: any): void {
+  controller.callAsync(name, args, (request) => mp.events.callRemote(Event.Noreply, JSON.stringify(request)));
 }
 
-export function CallBrowserSync(name: string, browserId: number, args: any): Promise<Result> {
-    return new Promise(() => null);
+export function CallBrowserAsync(name: string, browserOrId: number | BrowserMp, args: any): void {
+  const browser = typeof browserOrId === 'number' ? browserRegistry.getBrowser(browserOrId) : browserOrId;
+  if (browser === undefined) {
+    return;
+  }
+
+  controller.callAsync(name, args, (request) => browser.execute(`window.vrpc.noreply(${JSON.stringify(request)});`));
+}
+
+export function CallServerSync(name: string, args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
+  return controller.callSync(name, args, timeout, Source.Client, (request: Request) =>
+    mp.events.callRemote(Event.Server.ReplyToClient, JSON.stringify(request)));
+}
+
+export function CallBrowserSync(name: string, browserOrId: number | BrowserMp, args: any, timeout: number = 1000): Promise<Result> | null {
+  const browser: BrowserMp | undefined = typeof browserOrId === 'number' ? browserRegistry.getBrowser(browserOrId) : browserOrId;
+  if (browser === undefined) {
+    return null;
+  }
+
+  return controller.callSync(name, args, timeout, Source.Client, (request: Request) =>
+    browser.execute(`window.vrpc.creply(${JSON.stringify(request)});`));
 }
 
 export default {
