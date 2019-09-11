@@ -1,0 +1,19 @@
+{
+  "name": "v-rpc-ragemp-server",
+  "version": "0.0.0",
+  "private": true,
+  "description": "An adaptable rpc (remote procedure call) system for different GTAV multiplayer providers.",
+  "scripts": {
+    "clean": "rm -Rf ./*.js",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "tslint": "^5.20.0",
+    "typescript": "^3.6.2"
+  },
+  "devDependencies": {
+    "@types/ragemp-s": "github:CocaColaBear/types-ragemp-s#master"
+  }
+}
