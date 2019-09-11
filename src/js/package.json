@@ -5,15 +5,17 @@
   "scripts": {
     "clean": "rm -Rf lib/*.js ragemp/**/*.js ./*.js",
     "publish": "npm publish --access public",
-    "build": "tsc"
+    "build": "build.sh"
   },
   "author": "",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
+    "ts-loader": "^6.1.0",
     "tslint": "^5.20.0",
-    "typescript": "^3.6.2"
+    "typescript": "^3.6.2",
+    "webpack": "^4.39.3",
+    "webpack-cli": "^3.3.8"
   },
-  "main": "index.js",
   "directories": {
     "lib": "lib"
   },
