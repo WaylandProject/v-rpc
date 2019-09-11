@@ -1,5 +1,7 @@
 
-export type Action = (name: string, args: any) => void;
+export type AsyncAction = (args: any) => void;
+
+export type SyncAction = (args: any) => any;
 
 export enum Source {
   Client = 0,
@@ -41,3 +43,18 @@ export interface AsyncRequest {
   Name: string;
   Args: any;
 }
+
+export interface AsyncBrowserRequest {
+  Name: string;
+  BrowserId: number;
+  Args: any;
+}
+
+export interface ServerArgs {
+  Player: PlayerMp;
+  Args: any;
+}
+
+export type ResolveAction = (result: Result) => void;
+
+export type BrowserResolveAction = (result: BrowserResult) => void;
