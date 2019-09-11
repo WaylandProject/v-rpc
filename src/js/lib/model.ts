@@ -7,14 +7,14 @@ export enum Source {
   Server = 2
 }
 
-export interface RPCRequest {
+export interface Request {
   Name: string;
   Source: Source;
   Id: number;
   Args: any;
 }
 
-export interface RPCBrowserRequest {
+export interface BrowserRequest {
   Name: string;
   Source: Source;
   BrowserId: number;
@@ -22,17 +22,22 @@ export interface RPCBrowserRequest {
   Args: any;
 }
 
-export interface RPCResult {
+export interface Result {
   Name: string;
   Source: Source;
   Id: number;
   Result: any;
 }
 
-export interface RPCBrowserResult {
+export interface BrowserResult {
   Name: string;
   Source: Source;
   BrowserId: number;
   Id: number;
   Result: any;
+}
+
+export interface AsyncRequest {
+  Name: string;
+  Args: any;
 }
