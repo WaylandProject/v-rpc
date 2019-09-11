@@ -18,7 +18,7 @@ class Controller extends IdGenerator {
     action(argsOverwrite(request.Args));
   }
 
-  public reply(request: Request, callback: (result: Result) => void): void {
+  public reply(request: Request, callback: (result: Result) => void, argsOverwrite: (args: any) => any = (v) => v): void {
     const action = this.registry.getSyncProcedure(request.Name);
     if (action === undefined) {
       return;
@@ -28,7 +28,7 @@ class Controller extends IdGenerator {
       Name: request.Name,
       Source: request.Source,
       Id: request.Id,
-      Result: action(request.Args)
+      Result: action(argsOverwrite(request.Args))
     });
   }
 
