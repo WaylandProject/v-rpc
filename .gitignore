@@ -1,8 +1,9 @@
 .vs/
 .vscode/
 node_modules/
-index.js
+**.js
 **.map
 dist/
-
+package-lock.json
 src/test
+!webpack.config.js
