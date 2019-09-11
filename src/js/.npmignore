@@ -3,3 +3,5 @@ tsconfig.json
 tslint.json
 **/*.ts
 !**/*.d.ts
+./ragemp/**/*.json
+lib/
