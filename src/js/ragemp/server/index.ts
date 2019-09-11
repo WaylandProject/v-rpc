@@ -6,13 +6,15 @@ import {
   Source,
   BrowserRequest,
   Request,
-  AsyncAction,
   AsyncRequest,
-  SyncAction,
   BrowserResult,
-  AsyncBrowserRequest,
-  ServerArgs
+  AsyncBrowserRequest
 } from '../../lib/model';
+
+export interface ServerArgs {
+  Player: PlayerMp;
+  Args: any;
+}
 
 const registry = new Registry();
 const controller = new Controller(registry);
@@ -44,6 +46,11 @@ mp.events.add(Event.Server.ReplyToBrowser, (player: PlayerMp, requestStr: string
     browserResult.BrowserId = request.BrowserId;
 
     player.call(Event.Client.RedirectServerToBrowser, JSON.stringify(browserResult));
+  }, (args: any) => {
+    return {
+      Player: player,
+      Args: args
+    } as ServerArgs;
   });
 });
 
@@ -53,7 +60,12 @@ mp.events.add(Event.Server.ReplyToClient, (player: PlayerMp, requestStr: string)
     return;
   }
 
-  controller.reply(request, (result: Result) => player.call(Event.Client.ReceiveFromServer, JSON.stringify(result)));
+  controller.reply(request, (result: Result) => player.call(Event.Client.ReceiveFromServer, JSON.stringify(result)), (args: any) => {
+    return {
+      Player: player,
+      Args: args
+    } as ServerArgs;
+  });
 });
 
 mp.events.add(Event.Server.ReceiveFromBrowser, (player: PlayerMp, resultStr: string) => {
@@ -74,24 +86,28 @@ mp.events.add(Event.Server.ReceiveFromClient, (player: PlayerMp, resultStr: stri
   controller.receive(result);
 });
 
-export function RegisterAsyncProcedure(name: string, method: AsyncAction): void {
-  registry.registerAsyncProcedure(name, method);
+type AsyncServerAction = (player: PlayerMp, args: any) => void;
+
+export function registerAsyncProcedure(name: string, method: AsyncServerAction): void {
+  registry.registerAsyncProcedure(name, (args: ServerArgs) => method(args.Player, args.Args));
 }
 
-export function RegisterSyncProcedure(name: string, method: SyncAction): void {
-  registry.registerSyncProcedure(name, method);
+type SyncServerAction = (player: PlayerMp, args: any) => void;
+
+export function registerSyncProcedure(name: string, method: SyncServerAction): void {
+  registry.registerSyncProcedure(name, (args: ServerArgs) => method(args.Player, args.Args));
 }
 
-export function CallClientAsync(player: PlayerMp, name: string, args: any): void {
+export function callClientAsync(player: PlayerMp, name: string, args: any): void {
   controller.callAsync(name, args, (request) => player.call(Event.Noreply, JSON.stringify(request)));
 }
 
-export function CallClientSync(player: PlayerMp, name: string, args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
+export function callClientSync(player: PlayerMp, name: string, args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
   return controller.callSync(name, args, timeout, Source.Server, (request) =>
     player.call(Event.Client.ReplyToServer, JSON.stringify(request)));
 }
 
-export function CallBrowserAsync(player: PlayerMp, name: string, browserId: number, args: any): void {
+export function callBrowserAsync(player: PlayerMp, name: string, browserId: number, args: any): void {
   controller.callAsync(name, args, (request) => {
     const browserRequest = request as AsyncBrowserRequest;
     browserRequest.BrowserId = browserId;
@@ -100,7 +116,7 @@ export function CallBrowserAsync(player: PlayerMp, name: string, browserId: numb
   });
 }
 
-export function CallBrowserSync(player: PlayerMp, name: string, browserId: number,
+export function callBrowserSync(player: PlayerMp, name: string, browserId: number,
                                 args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
   return controller.callSync(name, args, timeout, Source.Server, (request) => {
     const browserRequest = request as BrowserRequest;
@@ -111,10 +127,10 @@ export function CallBrowserSync(player: PlayerMp, name: string, browserId: numbe
 }
 
 export default {
-  RegisterAsyncProcedure,
-  RegisterSyncProcedure,
-  CallClientAsync,
-  CallClientSync,
-  CallBrowserAsync,
-  CallBrowserSync
+  registerAsyncProcedure,
+  registerSyncProcedure,
+  callClientAsync,
+  callClientSync,
+  callBrowserAsync,
+  callBrowserSync
 };
