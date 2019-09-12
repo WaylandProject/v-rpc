@@ -1,6 +1,6 @@
 {
   "name": "@eisengrind/v-rpc",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "An adaptable rpc (remote procedure call) system for different GTAV multiplayer providers.",
   "scripts": {
     "clean": "rm -Rf lib/*.js ragemp/**/*.js ./*.js",
@@ -9,14 +9,18 @@
   },
   "author": "",
   "license": "AGPL-3.0-or-later",
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "ts-loader": "^6.1.0",
     "tslint": "^5.20.0",
     "typescript": "^3.6.2",
     "webpack": "^4.39.3",
     "webpack-cli": "^3.3.8"
   },
-  "devDependencies": {
-    "@types/ragemp-s": "github:CocaColaBear/types-ragemp-s#master"
-  }
+  "files": [
+    "lib",
+    "ragemp/cef",
+    "ragemp/client",
+    "ragemp/server"
+  ]
 }
