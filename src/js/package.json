@@ -1,11 +1,11 @@
 {
   "name": "@eisengrind/v-rpc",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "An adaptable rpc (remote procedure call) system for different GTAV multiplayer providers.",
   "scripts": {
     "clean": "rm -Rf lib/*.js ragemp/**/*.js ./*.js",
     "build": "./node_modules/.bin/webpack --mode=production",
-    "prepare-publish": "publish.sh"
+    "publish": "publish.sh"
   },
   "author": "",
   "license": "AGPL-3.0-or-later",
