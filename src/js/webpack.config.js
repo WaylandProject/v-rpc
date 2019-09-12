@@ -10,7 +10,7 @@ module.exports = mode => [{
   output: {
     path: path.resolve(__dirname, 'dist/ragemp/cef'),
     filename: `index.js`,
-    library: '@eisengrind/v-rpc/ragemp/cef',
+    library: 'vrpc',
     libraryTarget: 'umd',
     globalObject: "typeof self !== 'undefined' ? self : this"
   },
@@ -24,8 +24,7 @@ module.exports = mode => [{
         use: ["ts-loader"]
       }
     ]
-  },
-  plugins: []
+  }
 }, {
   name: "v-rpc-ragemp-client",
   mode,
@@ -35,7 +34,7 @@ module.exports = mode => [{
   output: {
     path: path.resolve(__dirname, 'dist/ragemp/client'),
     filename: `index.js`,
-    library: '@eisengrind/v-rpc/ragemp/client',
+    library: 'vrpc',
     libraryTarget: 'umd',
     globalObject: "typeof self !== 'undefined' ? self : this"
   },
@@ -49,8 +48,7 @@ module.exports = mode => [{
         use: ["ts-loader"]
       }
     ]
-  },
-  plugins: []
+  }
 }, {
   name: "v-rpc-ragemp-server",
   mode,
@@ -60,7 +58,7 @@ module.exports = mode => [{
   output: {
     path: path.resolve(__dirname, 'dist/ragemp/server'),
     filename: `index.js`,
-    library: '@eisengrind/v-rpc/ragemp/server',
+    library: 'vrpc',
     libraryTarget: 'umd',
     globalObject: "typeof self !== 'undefined' ? self : this"
   },
@@ -74,6 +72,5 @@ module.exports = mode => [{
         use: ["ts-loader"]
       }
     ]
-  },
-  plugins: []
+  }
 }];
