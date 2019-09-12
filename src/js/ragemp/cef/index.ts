@@ -10,25 +10,41 @@ const controller = new Controller(registry);
 
 const DEFAULT_TIMEOUT = 1000;
 
-window.vrpc = window.vrpc || {};
-
-if (window.vrpc.vrpc === undefined) {
-  window.vrpc = {};
+if (window.vrpchandler === undefined) {
+  window.vrpchandler = {};
 }
 
-window.vrpc.noreply = (request: AsyncRequest) => controller.noReply(request);
+window.vrpchandler.noreply = (request: AsyncRequest) => controller.noReply(request);
 
-window.vrpc.creply = (request: Request) =>
+window.vrpchandler.creply = (request: Request) => {
+  if (request === undefined || request === null) {
+    return;
+  }
+
   controller.reply(request, (result: Result) => mp.trigger(Event.Client.ReceiveFromBrowser, JSON.stringify(result)));
+};
 
-window.vrpc.sreply = (request: Request) =>
+window.vrpchandler.sreply = (request: Request) => {
+  if (request === undefined || request === null) {
+    return;
+  }
+
   controller.reply(request, (result: Result) => mp.trigger(Event.Client.RedirectBrowserToServer, JSON.stringify(result)));
+};
 
-window.vrpc.ccallback = (result: Result) => {
+window.vrpchandler.ccallback = (result: Result) => {
+  if (result === undefined || result === null) {
+    return;
+  }
+
   controller.receive(result);
 };
 
-window.vrpc.scallback = (result: Result) => {
+window.vrpchandler.scallback = (result: Result) => {
+  if (result === undefined || result === null) {
+    return;
+  }
+
   controller.receive(result);
 };
 
@@ -80,8 +96,18 @@ export function callServerAsync(name: string, args: any): void {
  * @param timeout The maximum waiting time for the call
  */
 export function callClientSync(name: string, args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
+  if (window.vrpchandler.uid === undefined) {
+    return null;
+  }
+
   return controller.callSync(name, args, timeout, Source.Cef, (request) =>
-    mp.trigger(Event.Client.ReplyToBrowser, JSON.stringify(request)));
+    mp.trigger(Event.Client.ReplyToBrowser, JSON.stringify({
+      Name: request.Name,
+      Id: request.Id,
+      BrowserId: window.vrpchandler.uid as number,
+      Source: Source.Cef,
+      Args: request.Args,
+    } as BrowserRequest)));
 }
 
 /**
@@ -92,7 +118,7 @@ export function callClientSync(name: string, args: any, timeout: number = DEFAUL
  * @param timeout The maximum waiting time for the call
  */
 export function callServerSync(name: string, args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
-  if (window.vrpc.uid === undefined) {
+  if (window.vrpchandler.uid === undefined) {
     return null;
   }
 
@@ -100,7 +126,7 @@ export function callServerSync(name: string, args: any, timeout: number = DEFAUL
     mp.trigger(Event.Client.RedirectBrowserToServer, JSON.stringify({
       Name: request.Name,
       Id: request.Id,
-      BrowserId: window.vrpc.uid as number,
+      BrowserId: window.vrpchandler.uid as number,
       Source: Source.Cef,
       Args: request.Args,
     } as BrowserRequest)));

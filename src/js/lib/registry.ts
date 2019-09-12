@@ -4,10 +4,13 @@ import { AsyncAction, SyncAction } from './model';
  * Represents the registry for registered rpc endpoints
  */
 class Registry {
-  private readonly asyncRegistry = new Map<string, AsyncAction>();
-  private readonly syncRegistry = new Map<string, SyncAction>();
+  private readonly asyncRegistry: Map<string, AsyncAction>;
+  private readonly syncRegistry: Map<string, SyncAction>;
 
-  constructor() {}
+  constructor() {
+    this.asyncRegistry = new Map<string, AsyncAction>();
+    this.syncRegistry = new Map<string, SyncAction>();
+  }
 
   /**
    * Registers an asynchronous procedure

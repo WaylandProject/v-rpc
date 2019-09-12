@@ -93,7 +93,7 @@ class Controller extends IdGenerator {
       Id: requestId,
       Source: source,
       Args: args
-    }));
+    }), 0);
 
     return promise;
   }

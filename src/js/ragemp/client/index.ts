@@ -24,84 +24,98 @@ mp.browsers.forEach((browser: BrowserMp) => {
 });
 mp.events.add('browserCreated', (b: BrowserMp) => {
   const uid = browserRegistry.register(b);
-  b.execute(`if (window.vrpc === undefined) { window.vrpc = {}; } window.vrpc.uid = ${uid};`);
+  b.execute(`if (window.vrpchandler === undefined) { window.vrpchandler = {}; } window.vrpchandler.uid = ${uid};`);
 });
 
 mp.events.add(Event.Noreply, (requestStr: string) => {
-  const request = JSON.parse(requestStr) as AsyncRequest;
-  if (request === undefined) {
+  try {
+    const request = JSON.parse(requestStr) as AsyncRequest;
+
+    controller.noReply(request);
+  } catch (e) {
     return;
   }
-
-  controller.noReply(request);
 });
 mp.events.add(Event.Client.ReplyToServer, (requestStr: string) => {
-  const request = JSON.parse(requestStr) as Request;
-  if (request === undefined) {
+  try {
+    const request = JSON.parse(requestStr) as Request;
+
+    controller.reply(request, (result) => {
+      mp.events.callRemote(Event.Server.ReceiveFromClient, JSON.stringify(result));
+    });
+  } catch {
     return;
   }
-
-  controller.reply(request, (result) => mp.events.callRemote(Event.Server.ReceiveFromClient, JSON.stringify(result)));
 });
 mp.events.add(Event.Client.ReplyToBrowser, (requestStr: string) => {
-  const request = JSON.parse(requestStr) as BrowserRequest;
-  if (request === undefined) {
+  try {
+    const request = JSON.parse(requestStr) as BrowserRequest;
+
+    const browser = browserRegistry.getBrowser(request.BrowserId);
+    if (browser === undefined) {
+      return;
+    }
+
+    controller.reply(request, (result: Result) => browser.execute(`window.vrpchandler.ccallback(${JSON.stringify(result)});`));
+  } catch {
     return;
   }
-
-  const browser = browserRegistry.getBrowser(request.BrowserId);
-  if (browser === undefined) {
-    return;
-  }
-
-  controller.reply(request, (result: Result) => browser.execute(`window.vrpc.ccallback(${JSON.stringify(result)});`));
 });
 
 mp.events.add(Event.Client.RedirectNoreplyToServer, (requestStr: string) => mp.events.callRemote(Event.Noreply, requestStr));
 mp.events.add(Event.Client.RedirectNoreplyToBrowser, (requestStr: string) => {
-  const request = JSON.parse(requestStr) as BrowserRequest;
-  if (request === undefined) {
+  try {
+    const request = JSON.parse(requestStr) as BrowserRequest;
+
+    const browser = browserRegistry.getBrowser(request.BrowserId);
+    if (browser === undefined) {
+      return;
+    }
+
+    browser.execute(`window.vrpchandler.noreply(${requestStr});`);
+  } catch {
     return;
   }
-
-  const browser = browserRegistry.getBrowser(request.BrowserId);
-  if (browser === undefined) {
-    return;
-  }
-
-  browser.execute(`window.vrpc.noreply(${requestStr});`);
 });
 
 mp.events.add(Event.Client.RedirectBrowserToServer, (requestStr: string) => mp.events.callRemote(Event.Server.ReplyToBrowser, requestStr));
 mp.events.add(Event.Client.RedirectServerToBrowser, (browserResultStr: string) => {
-  const browserResult = JSON.parse(browserResultStr) as BrowserResult;
-  if (browserResult === undefined) {
+  try {
+    const browserResult = JSON.parse(browserResultStr) as BrowserResult;
+
+    const browser = browserRegistry.getBrowser(browserResult.BrowserId);
+    if (browser === undefined) {
+      return;
+    }
+
+    browser.execute(`window.vrpchandler.scallback(${JSON.stringify({
+      Name: browserResult.Name,
+      Id: browserResult.Id,
+      Source: browserResult.Source,
+      Result: browserResult.Result
+    } as Result)});`);
+  } catch {
     return;
   }
-
-  const browser = browserRegistry.getBrowser(browserResult.BrowserId);
-  if (browser === undefined) {
-    return;
-  }
-
-  browser.execute(`window.vrpc.scallback(${browserResultStr});`);
 });
 
 mp.events.add(Event.Client.ReceiveFromServer, (resultStr: string) => {
-  const result = JSON.parse(resultStr) as Result;
-  if (result === undefined) {
+  try {
+    const result = JSON.parse(resultStr) as Result;
+
+    controller.receive(result);
+  } catch {
     return;
   }
-
-  controller.receive(result);
 });
 mp.events.add(Event.Client.ReceiveFromBrowser, (resultStr: string) => {
-  const result = JSON.parse(resultStr) as Result;
-  if (result === undefined) {
+  try {
+    const result = JSON.parse(resultStr) as Result;
+
+    controller.receive(result);
+  } catch {
     return;
   }
-
-  controller.receive(result);
 });
 
 /**
@@ -146,7 +160,7 @@ export function callBrowserAsync(name: string, browserOrId: number | BrowserMp, 
     return;
   }
 
-  controller.callAsync(name, args, (request) => browser.execute(`window.vrpc.noreply(${JSON.stringify(request)});`));
+  controller.callAsync(name, args, (request) => browser.execute(`window.vrpchandler.noreply(${JSON.stringify(request)});`));
 }
 
 /**
@@ -175,7 +189,7 @@ export function callBrowserSync(name: string, browserOrId: number | BrowserMp, a
   }
 
   return controller.callSync(name, args, timeout, Source.Client, (request: Request) =>
-    browser.execute(`window.vrpc.creply(${JSON.stringify(request)});`));
+    browser.execute(`window.vrpchandler.creply(${JSON.stringify(request)});`));
 }
 
 export default {
