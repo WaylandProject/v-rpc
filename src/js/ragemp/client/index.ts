@@ -104,18 +104,42 @@ mp.events.add(Event.Client.ReceiveFromBrowser, (resultStr: string) => {
   controller.receive(result);
 });
 
+/**
+ * Register an asynchronous procedure
+ *
+ * @param name The name of the procedure
+ * @param method The procedure method
+ */
 export function registerAsyncProcedure(name: string, method: AsyncAction): void {
   registry.registerAsyncProcedure(name, method);
 }
 
+/**
+ * Register a synchronous procedure
+ *
+ * @param name The name of the procedure
+ * @param method The procedure method
+ */
 export function registerSyncProcedure(name: string, method: SyncAction): void {
   registry.registerSyncProcedure(name, method);
 }
 
+/**
+ * Call an asynchronous procedure on the server
+ *
+ * @param name The name of the procedure
+ * @param args The arguments to pass to the procedure
+ */
 export function callServerAsync(name: string, args: any): void {
   controller.callAsync(name, args, (request) => mp.events.callRemote(Event.Noreply, JSON.stringify(request)));
 }
 
+/**
+ * Call an asynchronous procedure in the browser
+ *
+ * @param name The name of the procedure
+ * @param args The arguments to pass to the procedure
+ */
 export function callBrowserAsync(name: string, browserOrId: number | BrowserMp, args: any): void {
   const browser = typeof browserOrId === 'number' ? browserRegistry.getBrowser(browserOrId) : browserOrId;
   if (browser === undefined) {
@@ -125,11 +149,25 @@ export function callBrowserAsync(name: string, browserOrId: number | BrowserMp, 
   controller.callAsync(name, args, (request) => browser.execute(`window.vrpc.noreply(${JSON.stringify(request)});`));
 }
 
+/**
+ * Call a synchronous procedure on the server
+ *
+ * @param name The name of the procedure
+ * @param args The arguments to pass to the procedure
+ * @param timeout The maximum waiting time for the call
+ */
 export function callServerSync(name: string, args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
   return controller.callSync(name, args, timeout, Source.Client, (request: Request) =>
     mp.events.callRemote(Event.Server.ReplyToClient, JSON.stringify(request)));
 }
 
+/**
+ * Call a synchronous procedure in the browser
+ *
+ * @param name The name of the procedure
+ * @param args The arguments to pass to the procedure
+ * @param timeout The maximum waiting time for the call
+ */
 export function callBrowserSync(name: string, browserOrId: number | BrowserMp, args: any, timeout: number = 1000): Promise<Result> | null {
   const browser: BrowserMp | undefined = typeof browserOrId === 'number' ? browserRegistry.getBrowser(browserOrId) : browserOrId;
   if (browser === undefined) {

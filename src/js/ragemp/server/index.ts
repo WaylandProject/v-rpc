@@ -86,27 +86,61 @@ mp.events.add(Event.Server.ReceiveFromClient, (player: PlayerMp, resultStr: stri
   controller.receive(result);
 });
 
+/**
+ * Represents an asynchronous server action
+ *
+ * @remarks
+ * This action is used to pass the player object from the base event to the base action.
+ */
 type AsyncServerAction = (player: PlayerMp, args: any) => void;
 
+/**
+ * Register an asynchronous procedure
+ *
+ * @param name The name of the procedure
+ * @param method The procedure method
+ */
 export function registerAsyncProcedure(name: string, method: AsyncServerAction): void {
   registry.registerAsyncProcedure(name, (args: ServerArgs) => method(args.Player, args.Args));
 }
 
+/**
+ * Represents an synchronous server action
+ *
+ * @remarks
+ * This action is used to pass the player object from the base event to the base action.
+ */
 type SyncServerAction = (player: PlayerMp, args: any) => void;
 
+/**
+ * Register a synchronous procedure
+ *
+ * @param name The name of the procedure
+ * @param method The procedure method
+ */
 export function registerSyncProcedure(name: string, method: SyncServerAction): void {
   registry.registerSyncProcedure(name, (args: ServerArgs) => method(args.Player, args.Args));
 }
 
+/**
+ * Call an asynchronous procedure on the client
+ *
+ * @param player The player to call the procedure on
+ * @param name The name of the procedure
+ * @param args The arguments to pass to the procedure
+ */
 export function callClientAsync(player: PlayerMp, name: string, args: any): void {
   controller.callAsync(name, args, (request) => player.call(Event.Noreply, JSON.stringify(request)));
 }
 
-export function callClientSync(player: PlayerMp, name: string, args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
-  return controller.callSync(name, args, timeout, Source.Server, (request) =>
-    player.call(Event.Client.ReplyToServer, JSON.stringify(request)));
-}
-
+/**
+ * Call an asynchronous procedure in the browser
+ *
+ * @param player The player to call the procedure on
+ * @param name The name of the procedure
+ * @param browserId The id of the browser
+ * @param args The arguments to pass to the procedure
+ */
 export function callBrowserAsync(player: PlayerMp, name: string, browserId: number, args: any): void {
   controller.callAsync(name, args, (request) => {
     const browserRequest = request as AsyncBrowserRequest;
@@ -116,6 +150,28 @@ export function callBrowserAsync(player: PlayerMp, name: string, browserId: numb
   });
 }
 
+/**
+ * Call a synchronous procedure on the client
+ *
+ * @param player The player to call the procedure on
+ * @param name The name of the procedure
+ * @param args The arguments to pass to the procedure
+ * @param timeout The maximum waiting time for the call
+ */
+export function callClientSync(player: PlayerMp, name: string, args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
+  return controller.callSync(name, args, timeout, Source.Server, (request) =>
+    player.call(Event.Client.ReplyToServer, JSON.stringify(request)));
+}
+
+/**
+ * Call a synchronous procedure in the browser
+ *
+ * @param player The player to call the procedure on
+ * @param name The name of the procedure
+ * @param browserId The id of the browser
+ * @param args The arguments to pass to the procedure
+ * @param timeout The maximum waiting time for the call
+ */
 export function callBrowserSync(player: PlayerMp, name: string, browserId: number,
                                 args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
   return controller.callSync(name, args, timeout, Source.Server, (request) => {
