@@ -8,6 +8,7 @@
     <owners>TheMysteriousVincent</owners>
     <license type="file">LICENSE</license>
     <projectUrl>https://github.com/eisengrind/v-rpc</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/eisengrind/v-rpc/master/assets/vrpc-logo-64x.png</iconUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>V-RPC is a GTAV multiplayer framework to allow synchronized procedure calls</description>
     <copyright>Copyright 2019 Vincent Heins and eisengrind.de</copyright>
