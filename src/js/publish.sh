@@ -4,6 +4,9 @@ rm -Rf dist/
 ./node_modules/.bin/webpack --mode production
 
 cp -rf package.json ../../README.md ../../LICENSE dist/
+echo "{\"main\": \"index.js\"}" >> dist/ragemp/cef/package.json
+echo "{\"main\": \"index.js\"}" >> dist/ragemp/client/package.json
+echo "{\"main\": \"index.js\"}" >> dist/ragemp/server/package.json
 
 mkdir -p dist/lib
 
