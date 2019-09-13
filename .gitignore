@@ -7,3 +7,4 @@ dist/
 package-lock.json
 src/test
 !webpack.config.js
+*.nupkg
