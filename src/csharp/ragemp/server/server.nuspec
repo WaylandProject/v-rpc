@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Eisengrind.VRPC.RageMP.Server</id>
+    <version>1.0.0</version>
+    <title>RageMP V-RPC Server</title>
+    <authors>Vincent Heins</authors>
+    <owners>TheMysteriousVincent</owners>
+    <license type="file">LICENSE</license>
+    <projectUrl>https://github.com/eisengrind/v-rpc</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>V-RPC is a GTAV multiplayer framework to allow synchronized procedure calls</description>
+    <copyright>Copyright 2019 Vincent Heins and eisengrind.de</copyright>
+    <tags>ragemp eisengrind gtav gta5 framework server serverside api</tags>
+    <repository type="git" url="https://github.com/eisengrind/v-rpc.git" branch="master" commit="f7176fcaeb2d8eb826eee1fcdc5ce8c7c07b9bf6" />
+    <dependencies>
+      <group targetFramework=".NETCoreApp2.0">
+        <dependency id="gtanetwork.api" version="0.3.6"/>
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\..\..\..\LICENSE" target=".\LICENSE"/>
+  </files>
+</package>
