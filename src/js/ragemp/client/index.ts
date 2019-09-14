@@ -144,8 +144,8 @@ export function registerSyncProcedure(name: string, method: SyncAction): void {
  * @param name The name of the procedure
  * @param args The arguments to pass to the procedure
  */
-export function callServerAsync(name: string, args: any): void {
-  controller.callAsync(name, args, (request) => mp.events.callRemote(Event.Noreply, JSON.stringify(request)));
+export function callServerAsync<TArgs>(name: string, args: TArgs): void {
+  controller.callAsync<TArgs>(name, args, (request) => mp.events.callRemote(Event.Noreply, JSON.stringify(request)));
 }
 
 /**
@@ -154,13 +154,13 @@ export function callServerAsync(name: string, args: any): void {
  * @param name The name of the procedure
  * @param args The arguments to pass to the procedure
  */
-export function callBrowserAsync(name: string, browserOrId: number | BrowserMp, args: any): void {
+export function callBrowserAsync<TArgs>(name: string, browserOrId: number | BrowserMp, args: TArgs): void {
   const browser = typeof browserOrId === 'number' ? browserRegistry.getBrowser(browserOrId) : browserOrId;
   if (browser === undefined) {
     return;
   }
 
-  controller.callAsync(name, args, (request) => browser.execute(`window.vrpchandler.noreply(${JSON.stringify(request)});`));
+  controller.callAsync<TArgs>(name, args, (request) => browser.execute(`window.vrpchandler.noreply(${JSON.stringify(request)});`));
 }
 
 /**
@@ -170,8 +170,8 @@ export function callBrowserAsync(name: string, browserOrId: number | BrowserMp, 
  * @param args The arguments to pass to the procedure
  * @param timeout The maximum waiting time for the call
  */
-export function callServerSync(name: string, args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
-  return controller.callSync(name, args, timeout, Source.Client, (request: Request) =>
+export function callServerSync<TArgs, TResult>(name: string, args: TArgs, timeout: number = DEFAULT_TIMEOUT): Promise<TResult> | null {
+  return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Client, (request: Request) =>
     mp.events.callRemote(Event.Server.ReplyToClient, JSON.stringify(request)));
 }
 
@@ -182,13 +182,14 @@ export function callServerSync(name: string, args: any, timeout: number = DEFAUL
  * @param args The arguments to pass to the procedure
  * @param timeout The maximum waiting time for the call
  */
-export function callBrowserSync(name: string, browserOrId: number | BrowserMp, args: any, timeout: number = 1000): Promise<Result> | null {
+export function callBrowserSync<TArgs, TResult>(name: string, browserOrId: number | BrowserMp, args: TArgs,
+                                                timeout: number = 1000): Promise<TResult> | null {
   const browser: BrowserMp | undefined = typeof browserOrId === 'number' ? browserRegistry.getBrowser(browserOrId) : browserOrId;
   if (browser === undefined) {
     return null;
   }
 
-  return controller.callSync(name, args, timeout, Source.Client, (request: Request) =>
+  return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Client, (request: Request) =>
     browser.execute(`window.vrpchandler.creply(${JSON.stringify(request)});`));
 }
 

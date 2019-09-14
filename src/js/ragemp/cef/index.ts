@@ -74,8 +74,8 @@ export function registerSyncProcedure(name: string, method: SyncAction): void {
  * @param name The name of the procedure
  * @param args The arguments to pass to the procedure
  */
-export function callClientAsync(name: string, args: any): void {
-  controller.callAsync(name, args, (request) => mp.trigger(Event.Noreply, JSON.stringify(request)));
+export function callClientAsync<TArgs>(name: string, args: TArgs): void {
+  controller.callAsync<TArgs>(name, args, (request) => mp.trigger(Event.Noreply, JSON.stringify(request)));
 }
 
 /**
@@ -84,8 +84,8 @@ export function callClientAsync(name: string, args: any): void {
  * @param name The name of the procedure
  * @param args The arguments to pass to the procedure
  */
-export function callServerAsync(name: string, args: any): void {
-  controller.callAsync(name, args, (request) => mp.trigger(Event.Client.RedirectBrowserToServer, JSON.stringify(request)));
+export function callServerAsync<TArgs>(name: string, args: TArgs): void {
+  controller.callAsync<TArgs>(name, args, (request) => mp.trigger(Event.Client.RedirectBrowserToServer, JSON.stringify(request)));
 }
 
 /**
@@ -95,12 +95,12 @@ export function callServerAsync(name: string, args: any): void {
  * @param args The arguments to pass to the procedure
  * @param timeout The maximum waiting time for the call
  */
-export function callClientSync(name: string, args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
+export function callClientSync<TArgs, TResult>(name: string, args: TArgs, timeout: number = DEFAULT_TIMEOUT): Promise<TResult> | null {
   if (window.vrpchandler.uid === undefined) {
     return null;
   }
 
-  return controller.callSync(name, args, timeout, Source.Cef, (request) =>
+  return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Cef, (request) =>
     mp.trigger(Event.Client.ReplyToBrowser, JSON.stringify({
       Name: request.Name,
       Id: request.Id,
@@ -117,12 +117,12 @@ export function callClientSync(name: string, args: any, timeout: number = DEFAUL
  * @param args The arguments to pass to the procedure
  * @param timeout The maximum waiting time for the call
  */
-export function callServerSync(name: string, args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
+export function callServerSync<TArgs, TResult>(name: string, args: TArgs, timeout: number = DEFAULT_TIMEOUT): Promise<TResult> | null {
   if (window.vrpchandler.uid === undefined) {
     return null;
   }
 
-  return controller.callSync(name, args, timeout, Source.Cef, (request) =>
+  return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Cef, (request) =>
     mp.trigger(Event.Client.RedirectBrowserToServer, JSON.stringify({
       Name: request.Name,
       Id: request.Id,

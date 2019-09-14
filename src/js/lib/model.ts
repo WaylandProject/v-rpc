@@ -82,4 +82,4 @@ export interface AsyncBrowserRequest {
  * 
  * This action resolves a Promise connected to it!
  */
-export type ResolveAction = (result: Result) => void;
+export type ResolveAction = (result: any) => void;

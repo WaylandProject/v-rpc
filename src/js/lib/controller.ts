@@ -59,7 +59,7 @@ class Controller extends IdGenerator {
       return;
     }
 
-    resolve(result);
+    resolve(result.Result);
   }
 
   /**
@@ -75,12 +75,12 @@ class Controller extends IdGenerator {
    * 
    * @returns A promise that will be triggered when the callback was received
    */
-  public callSync(name: string, args: any, timeout: number, source: Source, call: (request: Request) => void): Promise<Result> {
+  public callSync<TArgs, TResult>(name: string, args: TArgs, timeout: number, source: Source, call: (request: Request) => void): Promise<TResult> {
     let requestId = this.generateId();
     while (this.pendingRequests.has(requestId))
       requestId = this.generateId();
 
-    const promise = new Promise<Result>((resolve, reject) => {
+    const promise = new Promise<TResult>((resolve, reject) => {
       this.pendingRequests.set(requestId, resolve);
 
       setTimeout(() => reject('The request has timed out.'), timeout);
@@ -105,7 +105,7 @@ class Controller extends IdGenerator {
    * @param args The arguments to pass to the async request
    * @param call The callback function that executes the async callback to a specific destination.
    */
-  public callAsync(name: string, args: any, call: (request: AsyncRequest) => void): void {
+  public callAsync<TArgs>(name: string, args: TArgs, call: (request: AsyncRequest) => void): void {
     call({
       Name: name,
       Args: args

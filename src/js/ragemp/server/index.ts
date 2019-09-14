@@ -134,8 +134,8 @@ export function registerSyncProcedure(name: string, method: SyncServerAction): v
  * @param name The name of the procedure
  * @param args The arguments to pass to the procedure
  */
-export function callClientAsync(player: PlayerMp, name: string, args: any): void {
-  controller.callAsync(name, args, (request) => player.call(Event.Noreply, [JSON.stringify(request)]));
+export function callClientAsync<TArgs>(player: PlayerMp, name: string, args: TArgs): void {
+  controller.callAsync<TArgs>(name, args, (request) => player.call(Event.Noreply, [JSON.stringify(request)]));
 }
 
 /**
@@ -146,8 +146,8 @@ export function callClientAsync(player: PlayerMp, name: string, args: any): void
  * @param browserId The id of the browser
  * @param args The arguments to pass to the procedure
  */
-export function callBrowserAsync(player: PlayerMp, name: string, browserId: number, args: any): void {
-  controller.callAsync(name, args, (request) => {
+export function callBrowserAsync<TArgs>(player: PlayerMp, name: string, browserId: number, args: TArgs): void {
+  controller.callAsync<TArgs>(name, args, (request) => {
     const browserRequest = request as AsyncBrowserRequest;
     browserRequest.BrowserId = browserId;
 
@@ -163,8 +163,9 @@ export function callBrowserAsync(player: PlayerMp, name: string, browserId: numb
  * @param args The arguments to pass to the procedure
  * @param timeout The maximum waiting time for the call
  */
-export function callClientSync(player: PlayerMp, name: string, args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
-  return controller.callSync(name, args, timeout, Source.Server, (request) =>
+export function callClientSync<TArgs, TResult>(player: PlayerMp, name: string, args: TArgs,
+                                               timeout: number = DEFAULT_TIMEOUT): Promise<TResult> | null {
+  return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Server, (request) =>
     player.call(Event.Client.ReplyToServer, [JSON.stringify(request)]));
 }
 
@@ -177,9 +178,9 @@ export function callClientSync(player: PlayerMp, name: string, args: any, timeou
  * @param args The arguments to pass to the procedure
  * @param timeout The maximum waiting time for the call
  */
-export function callBrowserSync(player: PlayerMp, name: string, browserId: number,
-                                args: any, timeout: number = DEFAULT_TIMEOUT): Promise<Result> | null {
-  return controller.callSync(name, args, timeout, Source.Server, (request) => {
+export function callBrowserSync<TArgs, TResult>(player: PlayerMp, name: string, browserId: number, args: TArgs,
+                                                timeout: number = DEFAULT_TIMEOUT): Promise<TResult> | null {
+  return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Server, (request) => {
     const browserRequest = request as BrowserRequest;
     browserRequest.BrowserId = browserId;
 
