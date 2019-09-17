@@ -1,5 +1,6 @@
 
 const path = require('path');
+const ClosurePlugin = require('closure-webpack-plugin');
 
 module.exports = mode => [{
   name: "v-rpc-ragemp-cef",
@@ -13,6 +14,12 @@ module.exports = mode => [{
     library: 'vrpc',
     libraryTarget: 'umd',
     globalObject: "typeof self !== 'undefined' ? self : this"
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new ClosurePlugin()
+    ],
   },
   resolve: {
     extensions: [".ts"]
@@ -38,6 +45,12 @@ module.exports = mode => [{
     libraryTarget: 'umd',
     globalObject: "typeof self !== 'undefined' ? self : this"
   },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new ClosurePlugin()
+    ],
+  },
   resolve: {
     extensions: [".ts"]
   },
@@ -61,6 +74,12 @@ module.exports = mode => [{
     library: 'vrpc',
     libraryTarget: 'umd',
     globalObject: "typeof self !== 'undefined' ? self : this"
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new ClosurePlugin()
+    ],
   },
   resolve: {
     extensions: [".ts"]
