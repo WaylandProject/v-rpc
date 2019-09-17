@@ -146,15 +146,15 @@ namespace VRPC.Model.Server
         }
     }
 
-    public class Result
+    public class Result<TData>
     {
         public string Name { get; private set; }
         public int Id { get; private set; }
         public Source Source { get; private set; }
         [JsonProperty("Result")]
-        public dynamic Data { get; private set; }
+        public TData Data { get; private set; }
 
-        public Result(string name, int id, Source source, dynamic data)
+        public Result(string name, int id, Source source, TData data)
         {
             Name = name;
             Id = id;
@@ -163,16 +163,16 @@ namespace VRPC.Model.Server
         }
     }
 
-    public class BrowserResult
+    public class BrowserResult<TData>
     {
         public string Name { get; private set; }
         public int Id { get; private set; }
         public int BrowserId { get; private set; }
         public Source Source { get; private set; }
         [JsonProperty("Result")]
-        public dynamic Data { get; private set; }
+        public TData Data { get; private set; }
 
-        public BrowserResult(string name, int id, int browserId, Source source, dynamic data)
+        public BrowserResult(string name, int id, int browserId, Source source, TData data)
         {
             Name = name;
             Id = id;

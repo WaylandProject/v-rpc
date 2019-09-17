@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GTANetworkAPI;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using VRPC.Model.Server;
 
 namespace VRPC
@@ -13,11 +14,11 @@ namespace VRPC
     /// </summary>
     public class Server : Script
     {
-        private static readonly Dictionary<int, Action<Result>> pendingRequests = new Dictionary<int, Action<Result>>();
+        private static readonly Dictionary<int, Action<JObject>> pendingRequests = new Dictionary<int, Action<JObject>>();
         private static readonly object pendingRequestsLock = new object();
-        private static readonly Dictionary<string, Action<Client, dynamic>> asyncProcedures = new Dictionary<string, Action<Client, dynamic>>();
+        private static readonly Dictionary<string, Action<Client, JObject>> asyncProcedures = new Dictionary<string, Action<Client, JObject>>();
         private static readonly object asyncProceduresLock = new object();
-        private static readonly Dictionary<string, Func<Client, dynamic, dynamic>> syncProcedures = new Dictionary<string, Func<Client, dynamic, dynamic>>();
+        private static readonly Dictionary<string, Action<Client, JObject>> syncProcedures = new Dictionary<string, Action<Client, JObject>>();
         private static readonly object syncProceduresLock = new object();
 
         [RemoteEvent("vrpc:nr")]
@@ -26,17 +27,16 @@ namespace VRPC
             if (args.Length != 1) return;
 
             var requestStr = (string)args[0];
+            var requestObject = JObject.Parse(requestStr);
 
-            var request = JsonConvert.DeserializeObject<AsyncRequest<dynamic>>(requestStr);
-            if (request == null) return;
+            if (requestObject == null) return;
+            if (requestObject["Name"] == null) return;
 
             lock (asyncProceduresLock)
             {
-                if (!asyncProcedures.TryGetValue(request.Name, out Action<Client, dynamic> action)) return;
-                Task.Run(() => {
-                    action(player, request.Arguments);
-                }).ConfigureAwait(false);
-                return;
+                if (!asyncProcedures.TryGetValue((string)requestObject["Name"], out Action<Client, JObject> action)) return;
+
+                action(player, requestObject);
             }
         }
 
@@ -46,21 +46,17 @@ namespace VRPC
             if (args.Length != 1) return;
 
             var requestStr = (string)args[0];
+            var requestObject = JObject.Parse(requestStr);
 
-            var request = JsonConvert.DeserializeObject<BrowserRequest<dynamic>>(requestStr);
-            if (request == null) return;
+            if (requestObject == null) return;
+            if (requestObject["Name"] == null) return;
 
             lock (syncProceduresLock)
             {
-                if (!syncProcedures.TryGetValue(request.Name, out Func<Client, dynamic, dynamic> func)) return;
+                if (!syncProcedures.TryGetValue((string)requestObject["Name"], out Action<Client, JObject> action)) return;
 
                 // detach from RageMP server API
-                Task.Run(async () => {
-                    Task<BrowserResult> t = new Task<BrowserResult>(() => new BrowserResult(request.Name, request.Id, request.BrowserId, request.Source, func(player, request.Arguments)));
-
-                    // send to browser proxy
-                    player.TriggerEvent("vrpc:rsb", JsonConvert.SerializeObject(await t));
-                }).ConfigureAwait(false);
+                Task.Run(() => action(player, requestObject)).ConfigureAwait(false);
             }
         }
 
@@ -70,20 +66,16 @@ namespace VRPC
             if (args.Length != 1) return;
 
             var requestStr = (string)args[0];
+            var requestObject = JObject.Parse(requestStr);
 
-            var request = JsonConvert.DeserializeObject<Request<dynamic>>(requestStr);
-            if (request == null) return;
+            if (requestObject == null) return;
+            if (requestObject["Name"] == null) return;
 
             lock (syncProceduresLock)
             {
-                if (!syncProcedures.TryGetValue(request.Name, out Func<Client, dynamic, dynamic> func)) return;
+                if (!syncProcedures.TryGetValue((string)requestObject["Name"], out Action<Client, JObject> action)) return;
 
-                Task.Run(async () => {
-                    Task<Result> t = new Task<Result>(() => new Result(request.Name, request.Id, request.Source, func(player, request.Arguments)));
-                    t.Start();
-
-                    player.TriggerEvent("vrpc:rfs", JsonConvert.SerializeObject(await t));
-                }).ConfigureAwait(false);
+                Task.Run(() => action(player, requestObject)).ConfigureAwait(false);
             }
         }
 
@@ -93,15 +85,15 @@ namespace VRPC
             if (args.Length != 1) return;
 
             var resultStr = (string)args[0];
+            var resultObject = JObject.Parse(resultStr);
 
-            var result = JsonConvert.DeserializeObject<Result>(resultStr);
-            if (result == null) return;
+            if (resultObject["Id"] == null) return;
 
             lock (pendingRequestsLock)
             {
-                if (!pendingRequests.TryGetValue(result.Id, out Action<Result> action)) return;
+                if (!pendingRequests.TryGetValue((int)resultObject["Id"], out Action<JObject> action)) return;
 
-                action(result);
+                action(resultObject);
             }
         }
 
@@ -111,15 +103,15 @@ namespace VRPC
             if (args.Length != 1) return;
 
             var resultStr = (string)args[0];
+            var resultObject = JObject.Parse(resultStr);
 
-            var result = JsonConvert.DeserializeObject<Result>(resultStr);
-            if (result == null) return;
+            if (resultObject["Id"] == null) return;
 
             lock (pendingRequestsLock)
             {
-                if (!pendingRequests.TryGetValue(result.Id, out Action<Result> action)) return;
+                if (!pendingRequests.TryGetValue((int)resultObject["Id"], out Action<JObject> action)) return;
 
-                action(result);
+                action(resultObject);
             }
         }
 
@@ -134,7 +126,10 @@ namespace VRPC
             lock (asyncProceduresLock) {
                 if (asyncProcedures.ContainsKey(name)) return;
 
-                asyncProcedures.Add(name, (player, args) => action(player, (TArgs)args));
+                asyncProcedures.Add(name, (player, requestObject) => {
+                    AsyncRequest<TArgs> request = requestObject.ToObject<AsyncRequest<TArgs>>();
+                    Task.Run(() => action(player, request.Arguments)).ConfigureAwait(false);
+                });
             }
         }
 
@@ -151,8 +146,21 @@ namespace VRPC
             {
                 if (syncProcedures.ContainsKey(name)) return;
 
-                syncProcedures.Add(name, (player, args) => {
-                    return func(player, (TArgs)args);
+                syncProcedures.Add(name, async (player, requestObject) => {
+                    // check whether its a browser or client request
+                    if (requestObject["BrowserId"] == null)
+                    {
+                        Request<TArgs> request = requestObject.ToObject<Request<TArgs>>();
+                        Task<Result<TResult>> t = new Task<Result<TResult>>(() => new Result<TResult>(request.Name, request.Id, request.Source, func(player, request.Arguments)));
+                        t.Start();
+                        player.TriggerEvent("vrpc:rfs", JsonConvert.SerializeObject(await t));
+                    } else
+                    {
+                        BrowserRequest<TArgs> request = requestObject.ToObject<BrowserRequest<TArgs>>();
+                        Task<BrowserResult<TResult>> t = new Task<BrowserResult<TResult>>(() => new BrowserResult<TResult>(request.Name, request.Id, request.BrowserId, request.Source, func(player, request.Arguments)));
+                        t.Start();
+                        player.TriggerEvent("vrpc:rsb", JsonConvert.SerializeObject(await t));
+                    }
                 });
             }
         }
@@ -186,7 +194,13 @@ namespace VRPC
 
             lock (pendingRequestsLock)
             {
-                pendingRequests[requestId] = (Result result) => completionSource.SetResult((TResult)result.Data);
+                pendingRequests[requestId] = (JObject resultObject) =>
+                {
+                    if (resultObject["BrowserId"] != null) return;
+
+                    Result<TResult> result = resultObject.ToObject<Result<TResult>>();
+                    completionSource.SetResult(result.Data);
+                };
             }
 
             var promise = new Promise<TResult>(completionSource, () => player.TriggerEvent("vrpc:rts", JsonConvert.SerializeObject(new Request<TArgs>(name, requestId, Source.Server, args))));
@@ -230,7 +244,13 @@ namespace VRPC
 
             lock (pendingRequestsLock)
             {
-                pendingRequests[requestId] = (Result result) => completionSource.SetResult((TResult)result.Data);
+                pendingRequests[requestId] = (JObject resultObject) =>
+                {
+                    if (resultObject["BrowserId"] == null) return;
+
+                    BrowserResult<TResult> result = resultObject.ToObject<BrowserResult<TResult>>();
+                    completionSource.SetResult(result.Data);
+                };
             }
 
             var promise = new Promise<TResult>(completionSource, () => player.TriggerEvent("vrpc:rsb", JsonConvert.SerializeObject(new BrowserRequest<TArgs>(name, requestId, browserId, Source.Server, args))));
