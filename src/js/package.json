@@ -1,6 +1,6 @@
 {
   "name": "@eisengrind/v-rpc",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "An adaptable rpc (remote procedure call) system for different GTAV multiplayer providers.",
   "scripts": {
     "clean": "rm -Rf lib/*.js ragemp/**/*.js ./*.js",
