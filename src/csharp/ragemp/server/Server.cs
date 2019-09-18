@@ -27,7 +27,18 @@ namespace VRPC
             if (args.Length != 1) return;
 
             var requestStr = (string)args[0];
-            var requestObject = JObject.Parse(requestStr);
+
+            JObject requestObject;
+
+            try
+            {
+                requestObject = JObject.Parse(requestStr);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[VRPC] no reply request could not be parsed:\n${e.ToString()}");
+                return;
+            }
 
             if (requestObject == null) return;
             if (requestObject["Name"] == null) return;
@@ -46,7 +57,18 @@ namespace VRPC
             if (args.Length != 1) return;
 
             var requestStr = (string)args[0];
-            var requestObject = JObject.Parse(requestStr);
+
+            JObject requestObject;
+
+            try
+            {
+                requestObject = JObject.Parse(requestStr);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[VRPC] browser request could not be parsed:\n${e.ToString()}");
+                return;
+            }
 
             if (requestObject == null) return;
             if (requestObject["Name"] == null) return;
@@ -66,7 +88,17 @@ namespace VRPC
             if (args.Length != 1) return;
 
             var requestStr = (string)args[0];
-            var requestObject = JObject.Parse(requestStr);
+
+            JObject requestObject;
+
+            try
+            {
+                requestObject = JObject.Parse(requestStr);
+            } catch (Exception e)
+            {
+                Console.WriteLine($"[VRPC] client request could not be parsed:\n${e.ToString()}");
+                return;
+            }
 
             if (requestObject == null) return;
             if (requestObject["Name"] == null) return;
@@ -85,7 +117,17 @@ namespace VRPC
             if (args.Length != 1) return;
 
             var resultStr = (string)args[0];
-            var resultObject = JObject.Parse(resultStr);
+
+            JObject resultObject;
+
+            try
+            {
+                resultObject = JObject.Parse(resultStr);
+            } catch (Exception e)
+            {
+                Console.WriteLine($"[VRPC] browser result could not be parsed:\n{e.ToString()}");
+                return;
+            }
 
             if (resultObject["Id"] == null) return;
 
@@ -103,7 +145,18 @@ namespace VRPC
             if (args.Length != 1) return;
 
             var resultStr = (string)args[0];
-            var resultObject = JObject.Parse(resultStr);
+
+            JObject resultObject;
+
+            try
+            {
+                resultObject = JObject.Parse(resultStr);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[VRPC] client result could not be parsed:\n{e.ToString()}");
+                return;
+            }
 
             if (resultObject["Id"] == null) return;
 
@@ -127,7 +180,17 @@ namespace VRPC
                 if (asyncProcedures.ContainsKey(name)) return;
 
                 asyncProcedures.Add(name, (player, requestObject) => {
-                    AsyncRequest<TArgs> request = requestObject.ToObject<AsyncRequest<TArgs>>();
+                    AsyncRequest<TArgs> request;
+
+                    try
+                    {
+                        request = requestObject.ToObject<AsyncRequest<TArgs>>();
+                    } catch (Exception e)
+                    {
+                        Console.WriteLine($"[VRPC] the async procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                        return;
+                    }
+
                     Task.Run(() => action(player, request.Arguments)).ConfigureAwait(false);
                 });
             }
@@ -150,13 +213,35 @@ namespace VRPC
                     // check whether its a browser or client request
                     if (requestObject["BrowserId"] == null)
                     {
-                        Request<TArgs> request = requestObject.ToObject<Request<TArgs>>();
+                        Request<TArgs> request;
+
+                        try
+                        {
+                            request = requestObject.ToObject<Request<TArgs>>();
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"[VRPC] the sync procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                            return;
+                        }
+
                         Task<Result<TResult>> t = new Task<Result<TResult>>(() => new Result<TResult>(request.Name, request.Id, request.Source, func(player, request.Arguments)));
                         t.Start();
                         player.TriggerEvent("vrpc:rfs", JsonConvert.SerializeObject(await t));
                     } else
                     {
-                        BrowserRequest<TArgs> request = requestObject.ToObject<BrowserRequest<TArgs>>();
+                        BrowserRequest<TArgs> request;
+
+                        try
+                        {
+                            request = requestObject.ToObject<BrowserRequest<TArgs>>();
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"[VRPC] the sync procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                            return;
+                        }
+
                         Task<BrowserResult<TResult>> t = new Task<BrowserResult<TResult>>(() => new BrowserResult<TResult>(request.Name, request.Id, request.BrowserId, request.Source, func(player, request.Arguments)));
                         t.Start();
                         player.TriggerEvent("vrpc:rsb", JsonConvert.SerializeObject(await t));
@@ -191,14 +276,23 @@ namespace VRPC
             var requestId = GenerateId();
 
             var completionSource = new TaskCompletionSource<TResult>();
-
             lock (pendingRequestsLock)
             {
                 pendingRequests[requestId] = (JObject resultObject) =>
                 {
                     if (resultObject["BrowserId"] != null) return;
 
-                    Result<TResult> result = resultObject.ToObject<Result<TResult>>();
+                    Result<TResult> result;
+
+                    try
+                    {
+                        result = resultObject.ToObject<Result<TResult>>();
+                    } catch (Exception e)
+                    {
+                        Console.WriteLine($"[VRPC] the pending client result data of '{resultObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                        return;
+                    }
+
                     completionSource.SetResult(result.Data);
                 };
             }
@@ -248,7 +342,18 @@ namespace VRPC
                 {
                     if (resultObject["BrowserId"] == null) return;
 
-                    BrowserResult<TResult> result = resultObject.ToObject<BrowserResult<TResult>>();
+                    Result<TResult> result;
+
+                    try
+                    {
+                        result = result = resultObject.ToObject<Result<TResult>>(); ;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"[VRPC] the pending browser result data of '{resultObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                        return;
+                    }
+
                     completionSource.SetResult(result.Data);
                 };
             }
