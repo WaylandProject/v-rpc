@@ -85,7 +85,7 @@ export function callClientAsync<TArgs>(name: string, args: TArgs): void {
  * @param args The arguments to pass to the procedure
  */
 export function callServerAsync<TArgs>(name: string, args: TArgs): void {
-  controller.callAsync<TArgs>(name, args, (request) => mp.trigger(Event.Client.RedirectBrowserToServer, JSON.stringify(request)));
+  controller.callAsync<TArgs>(name, args, (request) => mp.trigger(Event.Client.RedirectNoreplyToBrowser, JSON.stringify(request)));
 }
 
 /**
