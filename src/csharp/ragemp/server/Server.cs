@@ -14,12 +14,28 @@ namespace VRPC
     /// </summary>
     public class Server : Script
     {
+        private static readonly bool EnableDebug = IsDebugEnvironment();
         private static readonly Dictionary<int, Action<JObject>> pendingRequests = new Dictionary<int, Action<JObject>>();
         private static readonly object pendingRequestsLock = new object();
         private static readonly Dictionary<string, Action<Client, JObject>> asyncProcedures = new Dictionary<string, Action<Client, JObject>>();
         private static readonly object asyncProceduresLock = new object();
         private static readonly Dictionary<string, Action<Client, JObject>> syncProcedures = new Dictionary<string, Action<Client, JObject>>();
         private static readonly object syncProceduresLock = new object();
+
+        private static bool IsDebugEnvironment()
+        {
+            try
+            {
+                var env = Environment.GetEnvironmentVariable("VRPC_DEBUG");
+
+                if (!bool.TryParse(env, out bool isDebug)) return false;
+
+                return isDebug;
+            } catch (Exception)
+            {
+                return false;
+            }
+        }
 
         [RemoteEvent("vrpc:nr")]
         private void EventNoReply(Client player, object[] args)
@@ -36,7 +52,8 @@ namespace VRPC
             }
             catch (Exception e)
             {
-                Console.WriteLine($"[VRPC] no reply request could not be parsed:\n${e.ToString()}");
+                if (EnableDebug)
+                    Console.WriteLine($"[VRPC] no reply request could not be parsed:\n${e.ToString()}");
                 return;
             }
 
@@ -66,7 +83,8 @@ namespace VRPC
             }
             catch (Exception e)
             {
-                Console.WriteLine($"[VRPC] browser request could not be parsed:\n${e.ToString()}");
+                if (EnableDebug)
+                    Console.WriteLine($"[VRPC] browser request could not be parsed:\n${e.ToString()}");
                 return;
             }
 
@@ -96,7 +114,8 @@ namespace VRPC
                 requestObject = JObject.Parse(requestStr);
             } catch (Exception e)
             {
-                Console.WriteLine($"[VRPC] client request could not be parsed:\n${e.ToString()}");
+                if (EnableDebug)
+                    Console.WriteLine($"[VRPC] client request could not be parsed:\n${e.ToString()}");
                 return;
             }
 
@@ -125,7 +144,8 @@ namespace VRPC
                 resultObject = JObject.Parse(resultStr);
             } catch (Exception e)
             {
-                Console.WriteLine($"[VRPC] browser result could not be parsed:\n{e.ToString()}");
+                if (EnableDebug)
+                    Console.WriteLine($"[VRPC] browser result could not be parsed:\n{e.ToString()}");
                 return;
             }
 
@@ -154,7 +174,8 @@ namespace VRPC
             }
             catch (Exception e)
             {
-                Console.WriteLine($"[VRPC] client result could not be parsed:\n{e.ToString()}");
+                if (EnableDebug)
+                    Console.WriteLine($"[VRPC] client result could not be parsed:\n{e.ToString()}");
                 return;
             }
 
@@ -187,7 +208,8 @@ namespace VRPC
                         request = requestObject.ToObject<AsyncRequest<TArgs>>();
                     } catch (Exception e)
                     {
-                        Console.WriteLine($"[VRPC] the async procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                        if (EnableDebug)
+                            Console.WriteLine($"[VRPC] the async procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
                         return;
                     }
 
@@ -221,7 +243,8 @@ namespace VRPC
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine($"[VRPC] the sync procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                            if (EnableDebug)
+                                Console.WriteLine($"[VRPC] the sync procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
                             return;
                         }
 
@@ -238,7 +261,8 @@ namespace VRPC
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine($"[VRPC] the sync procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                            if (EnableDebug)
+                                Console.WriteLine($"[VRPC] the sync procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
                             return;
                         }
 
@@ -289,7 +313,8 @@ namespace VRPC
                         result = resultObject.ToObject<Result<TResult>>();
                     } catch (Exception e)
                     {
-                        Console.WriteLine($"[VRPC] the pending client result data of '{resultObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                        if (EnableDebug)
+                            Console.WriteLine($"[VRPC] the pending client result data of '{resultObject["Name"]}' could not be parsed:\n{e.ToString()}");
                         return;
                     }
 
@@ -350,7 +375,8 @@ namespace VRPC
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"[VRPC] the pending browser result data of '{resultObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                        if (EnableDebug)
+                            Console.WriteLine($"[VRPC] the pending browser result data of '{resultObject["Name"]}' could not be parsed:\n{e.ToString()}");
                         return;
                     }
 
