@@ -95,9 +95,9 @@ export function callServerAsync<TArgs>(name: string, args: TArgs): void {
  * @param args The arguments to pass to the procedure
  * @param timeout The maximum waiting time for the call
  */
-export function callClientSync<TArgs, TResult>(name: string, args: TArgs, timeout: number = DEFAULT_TIMEOUT): Promise<TResult> | null {
+export function callClientSync<TArgs, TResult>(name: string, args: TArgs, timeout: number = DEFAULT_TIMEOUT): Promise<TResult> {
   if (window.vrpchandler.uid === undefined) {
-    return null;
+    return new Promise<TResult>((_, r) => r('no uid defined'));
   }
 
   return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Cef, (request) =>
@@ -117,9 +117,9 @@ export function callClientSync<TArgs, TResult>(name: string, args: TArgs, timeou
  * @param args The arguments to pass to the procedure
  * @param timeout The maximum waiting time for the call
  */
-export function callServerSync<TArgs, TResult>(name: string, args: TArgs, timeout: number = DEFAULT_TIMEOUT): Promise<TResult> | null {
+export function callServerSync<TArgs, TResult>(name: string, args: TArgs, timeout: number = DEFAULT_TIMEOUT): Promise<TResult> {
   if (window.vrpchandler.uid === undefined) {
-    return null;
+    return new Promise<TResult>((_, r) => r('no uid defined'));
   }
 
   return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Cef, (request) =>

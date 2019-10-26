@@ -170,7 +170,7 @@ export function callBrowserAsync<TArgs>(name: string, browserOrId: number | Brow
  * @param args The arguments to pass to the procedure
  * @param timeout The maximum waiting time for the call
  */
-export function callServerSync<TArgs, TResult>(name: string, args: TArgs, timeout: number = DEFAULT_TIMEOUT): Promise<TResult> | null {
+export function callServerSync<TArgs, TResult>(name: string, args: TArgs, timeout: number = DEFAULT_TIMEOUT): Promise<TResult> {
   return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Client, (request: Request) =>
     mp.events.callRemote(Event.Server.ReplyToClient, JSON.stringify(request)));
 }
@@ -183,10 +183,10 @@ export function callServerSync<TArgs, TResult>(name: string, args: TArgs, timeou
  * @param timeout The maximum waiting time for the call
  */
 export function callBrowserSync<TArgs, TResult>(name: string, browserOrId: number | BrowserMp, args: TArgs,
-                                                timeout: number = 1000): Promise<TResult> | null {
+                                                timeout: number = 1000): Promise<TResult> {
   const browser: BrowserMp | undefined = typeof browserOrId === 'number' ? browserRegistry.getBrowser(browserOrId) : browserOrId;
   if (browser === undefined) {
-    return null;
+    return new Promise<TResult>((_, r) => r('browser undefined'));
   }
 
   return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Client, (request: Request) =>

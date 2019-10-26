@@ -164,7 +164,7 @@ export function callBrowserAsync<TArgs>(player: PlayerMp, name: string, browserI
  * @param timeout The maximum waiting time for the call
  */
 export function callClientSync<TArgs, TResult>(player: PlayerMp, name: string, args: TArgs,
-                                               timeout: number = DEFAULT_TIMEOUT): Promise<TResult> | null {
+                                               timeout: number = DEFAULT_TIMEOUT): Promise<TResult> {
   return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Server, (request) =>
     player.call(Event.Client.ReplyToServer, [JSON.stringify(request)]));
 }
@@ -179,7 +179,7 @@ export function callClientSync<TArgs, TResult>(player: PlayerMp, name: string, a
  * @param timeout The maximum waiting time for the call
  */
 export function callBrowserSync<TArgs, TResult>(player: PlayerMp, name: string, browserId: number, args: TArgs,
-                                                timeout: number = DEFAULT_TIMEOUT): Promise<TResult> | null {
+                                                timeout: number = DEFAULT_TIMEOUT): Promise<TResult> {
   return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Server, (request) => {
     const browserRequest = request as BrowserRequest;
     browserRequest.BrowserId = browserId;
