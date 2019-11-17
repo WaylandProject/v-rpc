@@ -183,7 +183,7 @@ export function callServerSync<TArgs, TResult>(name: string, args: TArgs, timeou
  * @param timeout The maximum waiting time for the call
  */
 export function callBrowserSync<TArgs, TResult>(name: string, browserOrId: number | BrowserMp, args: TArgs,
-                                                timeout: number = 1000): Promise<TResult> {
+                                                timeout: number = DEFAULT_TIMEOUT): Promise<TResult> {
   const browser: BrowserMp | undefined = typeof browserOrId === 'number' ? browserRegistry.getBrowser(browserOrId) : browserOrId;
   if (browser === undefined) {
     return new Promise<TResult>((_, r) => r('browser undefined'));
