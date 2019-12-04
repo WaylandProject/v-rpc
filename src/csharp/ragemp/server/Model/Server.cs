@@ -20,6 +20,20 @@ namespace VRPC.Model.Server
         Server
     }
 
+    public class Request
+    {
+        public string Name { get; protected set; }
+        public int Id { get; protected set; }
+        public Source Source { get; protected set; }
+
+        public Request(string name, int id, Source source)
+        {
+            Name = name;
+            Id = id;
+            Source = source;
+        }
+    }
+
     public class Request<T>
     {
         public string Name { get; protected set; }
@@ -34,6 +48,22 @@ namespace VRPC.Model.Server
             Id = id;
             Source = source;
             Arguments = arguments;
+        }
+    }
+
+    public class BrowserRequest
+    {
+        public string Name { get; protected set; }
+        public int Id { get; protected set; }
+        public Source Source { get; protected set; }
+        public int BrowserId { get; protected set; }
+
+        public BrowserRequest(string name, int id, int browserId, Source source)
+        {
+            Name = name;
+            Id = id;
+            Source = source;
+            BrowserId = browserId;
         }
     }
 
@@ -53,6 +83,16 @@ namespace VRPC.Model.Server
             Source = source;
             Arguments = arguments;
             BrowserId = browserId;
+        }
+    }
+
+    public class AsyncRequest
+    {
+        public string Name { get; protected set; }
+
+        public AsyncRequest(string name)
+        {
+            Name = name;
         }
     }
 

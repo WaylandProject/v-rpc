@@ -189,6 +189,31 @@ namespace VRPC
             }
         }
 
+        public void RegisterAsyncProcedure(string name, Action<Client> action)
+        {
+            lock (asyncProceduresLock)
+            {
+                if (asyncProcedures.ContainsKey(name)) return;
+
+                asyncProcedures.Add(name, (player, requestObject) => {
+                    AsyncRequest request;
+
+                    try
+                    {
+                        request = requestObject.ToObject<AsyncRequest>();
+                    }
+                    catch (Exception e)
+                    {
+                        if (EnableDebug)
+                            Console.WriteLine($"[VRPC] the async procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                        return;
+                    }
+
+                    Task.Run(() => action(player)).ConfigureAwait(false);
+                });
+            }
+        }
+
         /// <summary>
         /// Registers a new asynchronous procedure
         /// </summary>
@@ -214,6 +239,63 @@ namespace VRPC
                     }
 
                     Task.Run(() => action(player, request.Arguments)).ConfigureAwait(false);
+                });
+            }
+        }
+
+        /// <summary>
+        /// Registers a new synchronous procedure
+        /// </summary>
+        /// <typeparam name="TResult">Action result type</typeparam>
+        /// <param name="name">The name of the procedure</param>
+        /// <param name="func">The method of the procedure</param>
+        public static void RegisterSyncProcedure<TResult>(string name, Func<Client, TResult> func)
+        {
+            lock (syncProceduresLock)
+            {
+                if (syncProcedures.ContainsKey(name)) return;
+
+                syncProcedures.Add(name, async (player, requestObject) =>
+                {
+                    // check whether its a browser or client request
+                    if (requestObject["BrowserId"] == null)
+                    {
+                        Request request;
+
+                        try
+                        {
+                            request = requestObject.ToObject<Request>();
+                        }
+                        catch (Exception e)
+                        {
+                            if (EnableDebug)
+                                Console.WriteLine($"[VRPC] the sync procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                            return;
+                        }
+
+                        Task<Result<TResult>> t = new Task<Result<TResult>>(() => new Result<TResult>(request.Name, request.Id, request.Source, func(player)));
+                        t.Start();
+                        player.TriggerEvent("vrpc:rfs", JsonConvert.SerializeObject(await t));
+                    }
+                    else
+                    {
+                        BrowserRequest request;
+
+                        try
+                        {
+                            request = requestObject.ToObject<BrowserRequest>();
+                        }
+                        catch (Exception e)
+                        {
+                            if (EnableDebug)
+                                Console.WriteLine($"[VRPC] the sync procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                            return;
+                        }
+
+                        Task<BrowserResult<TResult>> t = new Task<BrowserResult<TResult>>(() => new BrowserResult<TResult>(request.Name, request.Id, request.BrowserId, request.Source, func(player)));
+                        t.Start();
+                        player.TriggerEvent("vrpc:rsb", JsonConvert.SerializeObject(await t));
+                    }
                 });
             }
         }
@@ -277,6 +359,16 @@ namespace VRPC
         /// <summary>
         /// Calls an asynchronous procedure on a player
         /// </summary>
+        /// <param name="player">The player to call the procedure on</param>
+        /// <param name="name">The name of the procedure</param>
+        public static void CallClientAsync(Client player, string name)
+        {
+            player.TriggerEvent("vrpc:nr", JsonConvert.SerializeObject(new AsyncRequest<object>(name, null)));
+        }
+
+        /// <summary>
+        /// Calls an asynchronous procedure on a player
+        /// </summary>
         /// <typeparam name="TArgs">The argument type</typeparam>
         /// <param name="player">The player to call the procedure on</param>
         /// <param name="name">The name of the procedure</param>
@@ -284,6 +376,51 @@ namespace VRPC
         public static void CallClientAsync<TArgs>(Client player, string name, TArgs args)
         {
             player.TriggerEvent("vrpc:nr", JsonConvert.SerializeObject(new AsyncRequest<TArgs>(name, args)));
+        }
+
+        /// <summary>
+        /// Calls a synchronous procedure on a player
+        /// </summary>
+        /// <typeparam name="TResult">The result type</typeparam>
+        /// <param name="player">The player to call the procedure on</param>
+        /// <param name="name">The name of the procedure</param>
+        /// <returns>Returns a promise-like type to attach callback listeners</returns>
+        public static Promise<TResult> CallClientSync<TResult>(Client player, string name)
+        {
+            var requestId = GenerateId();
+
+            var completionSource = new TaskCompletionSource<TResult>();
+            lock (pendingRequestsLock)
+            {
+                pendingRequests[requestId] = (JObject resultObject) =>
+                {
+                    if (resultObject["BrowserId"] != null) return;
+
+                    Result<TResult> result;
+
+                    try
+                    {
+                        result = resultObject.ToObject<Result<TResult>>();
+                    }
+                    catch (Exception e)
+                    {
+                        if (EnableDebug)
+                            Console.WriteLine($"[VRPC] the pending client result data of '{resultObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                        return;
+                    }
+
+                    completionSource.SetResult(result.Data);
+                };
+            }
+
+            var promise = new Promise<TResult>(completionSource, () => player.TriggerEvent("vrpc:rts", JsonConvert.SerializeObject(new Request(name, requestId, Source.Server))));
+
+            promise.OnComplete += () =>
+            {
+                lock (pendingRequestsLock) { pendingRequests.Remove(requestId); }
+            };
+
+            return promise;
         }
 
         /// <summary>
