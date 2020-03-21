@@ -1,6 +1,16 @@
 import Controller from '../../lib/controller';
 import Registry from '../../lib/registry';
-import { Result, BrowserRequest, Request, Source, AsyncAction, AsyncRequest, SyncAction } from '../../lib/model';
+import {
+  Result,
+  BrowserRequest,
+  Request,
+  Source,
+  AsyncAction,
+  AsyncRequest,
+  SyncAction,
+  AsyncMiddlewareAction,
+  SyncMiddlewareAction
+} from '../../lib/model';
 import { Event } from '../../lib/events';
 
 declare let window: any;
@@ -55,7 +65,10 @@ window.vrpchandler.scallback = (result: Result) => {
  * @param method The procedure method
  */
 export function registerAsyncProcedure(name: string, method: AsyncAction): void {
-  registry.registerAsyncProcedure(name, method);
+  registry.registerAsyncProcedure(
+    name,
+    method
+  );
 }
 
 /**
@@ -65,7 +78,10 @@ export function registerAsyncProcedure(name: string, method: AsyncAction): void 
  * @param method The procedure method
  */
 export function registerSyncProcedure(name: string, method: SyncAction): void {
-  registry.registerSyncProcedure(name, method);
+  registry.registerSyncProcedure(
+    name,
+    method
+  );
 }
 
 /**
@@ -74,8 +90,12 @@ export function registerSyncProcedure(name: string, method: SyncAction): void {
  * @param name The name of the procedure
  * @param args The arguments to pass to the procedure
  */
-export function callClientAsync<TArgs>(name: string, args: TArgs): void {
-  controller.callAsync<TArgs>(name, args, (request) => mp.trigger(Event.Noreply, JSON.stringify(request)));
+export function callClientAsync<TArgs>(name: string, args?: TArgs): void {
+  controller.callAsync<TArgs | undefined>(
+    name,
+    (request) => mp.trigger(Event.Noreply, JSON.stringify(request)),
+    args
+  );
 }
 
 /**
@@ -84,8 +104,12 @@ export function callClientAsync<TArgs>(name: string, args: TArgs): void {
  * @param name The name of the procedure
  * @param args The arguments to pass to the procedure
  */
-export function callServerAsync<TArgs>(name: string, args: TArgs): void {
-  controller.callAsync<TArgs>(name, args, (request) => mp.trigger(Event.Client.RedirectNoreplyToBrowser, JSON.stringify(request)));
+export function callServerAsync<TArgs>(name: string, args?: TArgs): void {
+  controller.callAsync<TArgs | undefined>(
+    name,
+    (request) => mp.trigger(Event.Client.RedirectNoreplyToBrowser, JSON.stringify(request)),
+    args
+  );
 }
 
 /**
@@ -95,19 +119,28 @@ export function callServerAsync<TArgs>(name: string, args: TArgs): void {
  * @param args The arguments to pass to the procedure
  * @param timeout The maximum waiting time for the call
  */
-export function callClientSync<TArgs, TResult>(name: string, args: TArgs, timeout: number = DEFAULT_TIMEOUT): Promise<TResult> {
+export function callClientSync<TResult, TArgs = undefined>(
+  name: string,
+  args?: TArgs,
+  timeout: number = DEFAULT_TIMEOUT
+): Promise<TResult> {
   if (window.vrpchandler.uid === undefined) {
     return new Promise<TResult>((_, r) => r('no uid defined'));
   }
 
-  return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Cef, (request) =>
-    mp.trigger(Event.Client.ReplyToBrowser, JSON.stringify({
-      Name: request.Name,
-      Id: request.Id,
-      BrowserId: window.vrpchandler.uid as number,
-      Source: Source.Cef,
-      Args: request.Args,
-    } as BrowserRequest)));
+  return controller.callSync<TArgs | undefined, TResult>(
+    name,
+    timeout,
+    Source.Cef,
+    (request) => mp.trigger(Event.Client.ReplyToBrowser, JSON.stringify({
+                   Name: request.Name,
+                   Id: request.Id,
+                   BrowserId: window.vrpchandler.uid as number,
+                   Source: Source.Cef,
+                   Args: request.Args,
+                 } as BrowserRequest)),
+    args
+  );
 }
 
 /**
@@ -117,19 +150,42 @@ export function callClientSync<TArgs, TResult>(name: string, args: TArgs, timeou
  * @param args The arguments to pass to the procedure
  * @param timeout The maximum waiting time for the call
  */
-export function callServerSync<TArgs, TResult>(name: string, args: TArgs, timeout: number = DEFAULT_TIMEOUT): Promise<TResult> {
+export function callServerSync<TResult, TArgs = undefined>(
+  name: string,
+  args?: TArgs,
+  timeout: number = DEFAULT_TIMEOUT
+): Promise<TResult> {
   if (window.vrpchandler.uid === undefined) {
     return new Promise<TResult>((_, r) => r('no uid defined'));
   }
 
-  return controller.callSync<TArgs, TResult>(name, args, timeout, Source.Cef, (request) =>
-    mp.trigger(Event.Client.RedirectBrowserToServer, JSON.stringify({
-      Name: request.Name,
-      Id: request.Id,
-      BrowserId: window.vrpchandler.uid as number,
-      Source: Source.Cef,
-      Args: request.Args,
-    } as BrowserRequest)));
+  return controller.callSync<TArgs | undefined, TResult>(
+    name,
+    timeout,
+    Source.Cef,
+    (request) => mp.trigger(Event.Client.RedirectBrowserToServer, JSON.stringify({
+                   Name: request.Name,
+                   Id: request.Id,
+                   BrowserId: window.vrpchandler.uid as number,
+                   Source: Source.Cef,
+                   Args: request.Args,
+                 } as BrowserRequest)),
+    args
+  );
+}
+
+/**
+ * Register a middleware for async incoming requests.
+ */
+export function registerAsyncMiddleware(mw: AsyncMiddlewareAction): void {
+  controller.registerAsyncMiddleware(mw);
+}
+
+/**
+ * Register a middleware for sync incoming requests.
+ */
+export function registerSyncMiddleware(mw: SyncMiddlewareAction): void {
+  controller.registerSyncMiddleware(mw);
 }
 
 export default {
