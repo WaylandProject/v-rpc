@@ -36,7 +36,7 @@ If you want to include this library in your browser HTML page, then you have to 
 ```html
 <html>
     <head>
-        <script type="text/javascript" src="vrpc-browser.js"></script>
+        <script type="text/javascript" src="vrpc-browser.min.js"></script>
     </head>
     <body>
         <script>
