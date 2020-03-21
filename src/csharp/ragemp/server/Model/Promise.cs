@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VRPC.Model
+namespace VRPC.RageMP.Server.Model
 {
     public class Promise<T>
     {

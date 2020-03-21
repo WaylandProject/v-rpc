@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using GTANetworkAPI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using VRPC.Model;
+using VRPC.RageMP.Server.Model;
 
-namespace VRPC
+namespace VRPC.RageMP.Server
 {
     /// <summary>
     /// Represents the serverside implementation of the v-rpc framework.
@@ -243,31 +243,6 @@ namespace VRPC
             if (!pendingRequests.TryGetValue((int)resultObject["Id"], out Action<JObject> action)) return;
 
             action(resultObject);
-        }
-
-        public void RegisterAsyncProcedure(string name, Action<Client> action)
-        {
-            lock (asyncProceduresLock)
-            {
-                if (asyncProcedures.ContainsKey(name)) return;
-
-                asyncProcedures.Add(name, (player, requestObject) => {
-                    AsyncRequest request;
-
-                    try
-                    {
-                        request = requestObject.ToObject<AsyncRequest>();
-                    }
-                    catch (Exception e)
-                    {
-                        if (EnableDebug)
-                            Console.WriteLine($"[VRPC] the async procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
-                        return;
-                    }
-
-                    Task.Run(() => action(player)).ConfigureAwait(false);
-                });
-            }
         }
 
         /// <summary>

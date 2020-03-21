@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace VRPC
+namespace VRPC.RageMP.Server
 {
     class IdGenerator
     {

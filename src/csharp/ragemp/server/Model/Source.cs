@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace VRPC.Model
+namespace VRPC.RageMP.Server.Model
 {
     public enum Source
     {

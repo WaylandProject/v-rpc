@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace VRPC.Model
+namespace VRPC.RageMP.Server.Model
 {
     public class AsyncRequest<T>
     {
