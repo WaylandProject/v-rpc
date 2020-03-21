@@ -31,12 +31,8 @@ export interface Request {
 /**
  * Represents a synchronous browser request
  */
-export interface BrowserRequest {
-  Name: string;
-  Source: Source;
+export interface BrowserRequest extends Request {
   BrowserId: number;
-  Id: number;
-  Args: any;
 }
 
 /**
@@ -52,12 +48,8 @@ export interface Result {
 /**
  * Represents a synchronous browser result
  */
-export interface BrowserResult {
-  Name: string;
-  Source: Source;
+export interface BrowserResult extends Result {
   BrowserId: number;
-  Id: number;
-  Result: any;
 }
 
 /**
@@ -71,10 +63,8 @@ export interface AsyncRequest {
 /**
  * Represents an asynchronous browser request
  */
-export interface AsyncBrowserRequest {
-  Name: string;
+export interface AsyncBrowserRequest extends AsyncRequest {
   BrowserId: number;
-  Args: any;
 }
 
 /**
@@ -83,3 +73,13 @@ export interface AsyncBrowserRequest {
  * This action resolves a Promise connected to it!
  */
 export type ResolveAction = (result: any) => void;
+
+/**
+ * Represents an async middleware.
+ */
+export type AsyncMiddlewareAction = (req: AsyncRequest, next: () => void) => void;
+
+/**
+ * Represents a sync middleware.
+ */
+export type SyncMiddlewareAction = (req: Request, next: () => void) => void;
