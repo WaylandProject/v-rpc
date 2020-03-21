@@ -1,9 +1,9 @@
 
 language: node_js
 before_script:
-- chmod 770 ./src/js/build.sh
 - cd ./src/js/
+- chmod 770 ./build.sh
 - npm install google-closure-compiler@20200315.0.0
 - npm install --save-dev
 script:
-- ./src/js/build.sh
+- ./build.sh
