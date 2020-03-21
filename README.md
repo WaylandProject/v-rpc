@@ -5,6 +5,7 @@
 
 An adaptable rpc (remote procedure call) system for different GTAV multiplayer providers.
 
+
 ## Installation and Usage
 
 ### RageMP
@@ -12,5 +13,10 @@ An adaptable rpc (remote procedure call) system for different GTAV multiplayer p
 [See the information for the JavaScript/TypeScript implementation](https://github.com/eisengrind/v-rpc/tree/master/src/js/ragemp)
 
 [See the information for the (serverside) C# implementation](https://github.com/eisengrind/v-rpc/tree/master/src/csharp/ragemp)
+
+## Current Versions
+
+- C# v2.0.0
+- JS v1.0.1
 
 **Copyright 2019 - Vincent Heins and eisengrind.de, [licensed under the GNU AGPLv3.0 license](https://github.com/eisengrind/v-rpc/blob/master/LICENSE)**
