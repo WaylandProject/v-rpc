@@ -1,4 +1,6 @@
 
 language: node_js
+before_script:
+- chmod 770 ./src/js/build.sh
 script:
 - ./src/js/build.sh
