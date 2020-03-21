@@ -245,6 +245,31 @@ namespace VRPC
             action(resultObject);
         }
 
+        public void RegisterAsyncProcedure(string name, Action<Client> action)
+        {
+            lock (asyncProceduresLock)
+            {
+                if (asyncProcedures.ContainsKey(name)) return;
+
+                asyncProcedures.Add(name, (player, requestObject) => {
+                    AsyncRequest request;
+
+                    try
+                    {
+                        request = requestObject.ToObject<AsyncRequest>();
+                    }
+                    catch (Exception e)
+                    {
+                        if (EnableDebug)
+                            Console.WriteLine($"[VRPC] the async procedure arguments of '{requestObject["Name"]}' could not be parsed:\n{e.ToString()}");
+                        return;
+                    }
+
+                    Task.Run(() => action(player)).ConfigureAwait(false);
+                });
+            }
+        }
+
         /// <summary>
         /// Registers a new asynchronous procedure.
         /// </summary>
@@ -407,6 +432,16 @@ namespace VRPC
 
         /// <summary>
         /// Calls an asynchronous procedure on a player.
+        /// </summary>
+        /// <param name="player">The player to call the procedure on</param>
+        /// <param name="name">The name of the procedure</param>
+        public static void CallClientAsync(Client player, string name)
+        {
+            player.TriggerEvent("vrpc:nr", JsonConvert.SerializeObject(new AsyncRequest<object>(name, null)));
+        }
+
+        /// <summary>
+        /// Calls an asynchronous procedure on a player
         /// </summary>
         /// <typeparam name="TArgs">The argument type</typeparam>
         /// <param name="player">The player to call the procedure on</param>
