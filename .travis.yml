@@ -3,6 +3,6 @@ language: node_js
 before_script:
 - chmod 770 ./src/js/build.sh
 - cd ./src/js/
-- npm install
+- npm install --save-dev
 script:
 - ./src/js/build.sh
