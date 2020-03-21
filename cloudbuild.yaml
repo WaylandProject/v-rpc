@@ -1,7 +1,0 @@
-
-steps:
-- name: 'node:13.10.1-stretch'
-  entrypoint: '/bin/bash'
-  args:
-  - -c
-  - ./src/js/build.sh
