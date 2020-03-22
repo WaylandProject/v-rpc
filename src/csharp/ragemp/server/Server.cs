@@ -523,7 +523,11 @@ namespace VRPC.RageMP.Server
             return promise;
         }
 
-        public static void RegisterAsyncMiddleware(Action<MiddlewareRequest, Action> mw)
+        /// <summary>
+        /// Registers a new middleware
+        /// </summary>
+        /// <param name="mw">Middleware action to register</param>
+        public static void RegisterMiddleware(Action<MiddlewareRequest, Action> mw)
         {
             lock (mwMtx)
             {
