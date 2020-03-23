@@ -34,9 +34,9 @@ For example, you can call the server from the client synchronous:
 
 ```js
 // registering the event on serverside
-require('@eisengrind/v-rpc/ragemp/server');
+var v = require('@eisengrind/v-rpc/ragemp/server');
 
-vrpc.registerSyncProcedure('ping', () => {
+v.vrpc.registerSyncProcedure('ping', () => {
   console.log('pong');
   return true;
 })
@@ -47,9 +47,9 @@ vrpc.registerSyncProcedure('ping', () => {
 
 // calling the event on clientside
 
-require('@eisengrind/v-rpc/ragemp/client');
+var v = require('@eisengrind/v-rpc/ragemp/client');
 
-var promise = vrpc.callServerSync('ping', true);
+var promise = v.vrpc.callServerSync('ping', true);
 
 promise.then(() => {
   // code that is executed when the server responded
@@ -63,9 +63,9 @@ Calling the client from the server asynchronous:
 
 ```js
 // registering the event on serverside
-require('@eisengrind/v-rpc/ragemp/server');
+var v = require('@eisengrind/v-rpc/ragemp/server');
 
-vrpc.registerAsyncProcedure('ping', () => {
+v.vrpc.registerAsyncProcedure('ping', () => {
   console.log('pong');
 })
 
@@ -74,9 +74,9 @@ vrpc.registerAsyncProcedure('ping', () => {
 /// ---
 
 // calling the event from clientside
-require('@eisengrind/v-rpc/ragemp/server');
+var v = require('@eisengrind/v-rpc/ragemp/server');
 
-vrpc.callClientAsync('ping', true);
+v.vrpc.callClientAsync('ping', true);
 ```
 
 For a full overview of the exported methods of `vrpc` see **Exported methods** section of this file.
