@@ -78,8 +78,6 @@ namespace VRPC.RageMP.Server
                     new MiddlewareRequest(
                         player,
                         (string)requestObject["Name"],
-                        (int)requestObject["Id"],
-                        (Source)(int)requestObject["Source"],
                         false
                     ),
                     () => action(player, requestObject)
@@ -125,8 +123,6 @@ namespace VRPC.RageMP.Server
                         new MiddlewareRequest(
                             player,
                             (string)requestObject["Name"],
-                            (int)requestObject["Id"],
-                            (Source)(int)requestObject["Source"],
                             true
                         ),
                         () => action(player, requestObject)
@@ -171,8 +167,6 @@ namespace VRPC.RageMP.Server
                         new MiddlewareRequest(
                             player,
                             (string)requestObject["Name"],
-                            (int)requestObject["Id"],
-                            (Source)(int)requestObject["Source"],
                             true
                         ),
                         () => action(player, requestObject)
