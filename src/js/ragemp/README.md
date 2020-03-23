@@ -22,11 +22,11 @@ in your npm project.
 To use the package in JavaScript, you can simply `require` the installed npm package:
 
 ```js
-var vrpc = require('@eisengrind/v-rpc/ragemp/server'); // for usage on the server
+require('@eisengrind/v-rpc/ragemp/server'); // for usage on the server
 
 /// ---
 
-var vrpc = require('@eisengrind/v-rpc/ragemp/client'); // for usage on the client
+require('@eisengrind/v-rpc/ragemp/client'); // for usage on the client
 ```
 ##### Examples
 
@@ -34,7 +34,7 @@ For example, you can call the server from the client synchronous:
 
 ```js
 // registering the event on serverside
-var vrpc = require('@eisengrind/v-rpc/ragemp/server');
+require('@eisengrind/v-rpc/ragemp/server');
 
 vrpc.registerSyncProcedure('ping', () => {
   console.log('pong');
@@ -47,7 +47,7 @@ vrpc.registerSyncProcedure('ping', () => {
 
 // calling the event on clientside
 
-var vrpc = require('@eisengrind/v-rpc/ragemp/client');
+require('@eisengrind/v-rpc/ragemp/client');
 
 var promise = vrpc.callServerSync('ping', true);
 
@@ -63,7 +63,7 @@ Calling the client from the server asynchronous:
 
 ```js
 // registering the event on serverside
-var vrpc = require('@eisengrind/v-rpc/ragemp/server');
+require('@eisengrind/v-rpc/ragemp/server');
 
 vrpc.registerAsyncProcedure('ping', () => {
   console.log('pong');
@@ -74,7 +74,7 @@ vrpc.registerAsyncProcedure('ping', () => {
 /// ---
 
 // calling the event from clientside
-var vrpc = require('@eisengrind/v-rpc/ragemp/server');
+require('@eisengrind/v-rpc/ragemp/server');
 
 vrpc.callClientAsync('ping', true);
 ```
