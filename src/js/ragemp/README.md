@@ -53,7 +53,7 @@ var vrpc = require('@eisengrind/v-rpc/ragemp/server');
 vrpc.callClientAsync('ping', true);
 ```
 
-For a full overview of the exported methods see **Exported methods** section of this file.
+For a full overview of the exported methods of `vrpc` see **Exported methods** section of this file.
 
 #### Browser (Cef)
 
