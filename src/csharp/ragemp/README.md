@@ -17,24 +17,24 @@ or you can simply inherit the `Server` class in **only one** of your classes
 
 ```cs
 namespace SomeNamespace {
-    public class SomeClass : VRPC.Server {}
+    public class SomeClass : VRPC.RageMP.Server.Server {}
 }
 ```
-. This step is needed to setup the event listeners for the vrpc specification to work. If you choose to inherit the VRPC class into **one** of your classes, you can continue working like you were working with inheriting from `Script`, as `VRPC.Server` is inheriting from `Script` aswell.
+. This step is needed to setup the event listeners for the vrpc specification to work. If you choose to inherit the VRPC class into **one** of your classes, you can continue working like you were working with inheriting from `Script`, as `VRPC.RageMP.Server.Server` is inheriting from `Script` aswell.
 
 ## Usage
 
 ### Server
 
-Once you've installed the v-rpc package, you are ready to get started with the UI of the `VRPC.Server` class.
+Once you've installed the v-rpc package, you are ready to get started with the UI of the `VRPC.RageMP.Server.Server` class.
 
-You can simply call the static methods available on the `VRPC.Server` class:
+You can simply call the static methods available on the `VRPC.RageMP.Server.Server` class:
 
 ```cs
 using GTANetworkAPI;
 
 namespace SomeNamespace {
-    public class SomeClass : VRPC.Server {
+    public class SomeClass : VRPC.RageMP.Server.Server {
         public SomeClass() {
             VRPC.Server.RegisterAsyncCall<int>("myFineTestProcedure", (Client player, int myNumberArgument) => {
                 Console.WriteLine($"here is my fine number {myNumberArgument} !");
