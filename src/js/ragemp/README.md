@@ -33,6 +33,20 @@ var vrpc = require('@eisengrind/v-rpc/ragemp/client'); // for usage on the clien
 For example, you can call the server from the client synchronous:
 
 ```js
+// registering the event on serverside
+var vrpc = require('@eisengrind/v-rpc/ragemp/server');
+
+vrpc.registerSyncProcedure('ping', () => {
+  console.log('pong');
+  return true;
+})
+
+/// ---
+/// ---
+/// ---
+
+// calling the event on clientside
+
 var vrpc = require('@eisengrind/v-rpc/ragemp/client');
 
 var promise = vrpc.callServerSync('ping', true);
@@ -48,6 +62,18 @@ promise.then(() => {
 Calling the client from the server asynchronous:
 
 ```js
+// registering the event on serverside
+var vrpc = require('@eisengrind/v-rpc/ragemp/server');
+
+vrpc.registerAsyncProcedure('ping', () => {
+  console.log('pong');
+})
+
+/// ---
+/// ---
+/// ---
+
+// calling the event from clientside
 var vrpc = require('@eisengrind/v-rpc/ragemp/server');
 
 vrpc.callClientAsync('ping', true);
