@@ -26,7 +26,7 @@ namespace SomeNamespace {
 
 ### Server
 
-Once you've installed the v-rpc package, you are ready to get started with the UI of the `VRPC.RageMP.Server.Server` class.
+Once you've installed the v-rpc package, you are ready to get started with the API of the `VRPC.RageMP.Server.Server` class.
 
 You can simply call the static methods available on the `VRPC.RageMP.Server.Server` class:
 
