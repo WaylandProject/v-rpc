@@ -1,5 +1,5 @@
 
-# RageMP TS Implementation
+# RageMP JavaScript/TypeScript Implementation
 
 This is the JavaScript implementation of v-rpc.
 
@@ -28,6 +28,32 @@ var vrpc = require('@eisengrind/v-rpc/ragemp/server'); // for usage on the serve
 
 var vrpc = require('@eisengrind/v-rpc/ragemp/client'); // for usage on the client
 ```
+##### Examples
+
+For example, you can call the server from the client synchronous:
+
+```js
+var vrpc = require('@eisengrind/v-rpc/ragemp/client');
+
+var promise = vrpc.callServerSync('ping', true);
+
+promise.then(() => {
+  // code that is executed when the server responded
+  console.log('pong');
+}).catch(() => {
+  // code that is executed if there is some error, like a timeout of the request
+});
+```
+
+Calling the client from the server asynchronous:
+
+```js
+var vrpc = require('@eisengrind/v-rpc/ragemp/server');
+
+vrpc.callClientAsync('ping', true);
+```
+
+For a full overview of the exported methods see **Exported methods** section of this file.
 
 #### Browser (Cef)
 
@@ -61,6 +87,49 @@ import { registerAsyncCall } from '@eisengrind/v-rpc/ragemp/client';
 /// ---
 // aaaand, if you are using TypeScript for your browser, then you can also include this library with the same scheme
 import { registerAsyncCall } from '@eisengrind/v-rpc/ragemp/cef';
+```
+
+### Exported methods
+
+The following method signatures are written down in TypeScript type definition format. Of course this methods are usable in JavaScript.
+
+#### Server
+
+```ts
+export declare function registerAsyncProcedure(name: string, method: AsyncServerAction): void;
+export declare function registerSyncProcedure(name: string, method: SyncServerAction): void;
+export declare function callClientAsync<TArgs>(player: PlayerMp, name: string, args?: TArgs): void;
+export declare function callBrowserAsync<TArgs>(player: PlayerMp, name: string, browserId: number, args?: TArgs): void;
+export declare function callClientSync<TResult, TArgs = undefined>(player: PlayerMp, name: string, args?: TArgs, timeout?: number): Promise<TResult>;
+export declare function callBrowserSync<TResult, TArgs = undefined>(player: PlayerMp, name: string, browserId: number, args?: TArgs, timeout?: number): Promise<TResult>;
+export declare function registerAsyncMiddleware(mw: AsyncMiddlewareAction): void;
+export declare function registerSyncMiddleware(mw: SyncMiddlewareAction): void;
+```
+
+#### Client
+
+```ts
+export declare function registerAsyncProcedure(name: string, method: AsyncAction): void;
+export declare function registerSyncProcedure(name: string, method: SyncAction): void;
+export declare function callServerAsync<TArgs>(name: string, args?: TArgs): void;
+export declare function callBrowserAsync<TArgs>(name: string, browserOrId: number | BrowserMp, args?: TArgs): void;
+export declare function callServerSync<TResult, TArgs = undefined>(name: string, args?: TArgs, timeout?: number): Promise<TResult>;
+export declare function callBrowserSync<TResult, TArgs = undefined>(name: string, browserOrId: number | BrowserMp, args: TArgs, timeout?: number): Promise<TResult>;
+export declare function registerAsyncMiddleware(mw: AsyncMiddlewareAction): void;
+export declare function registerSyncMiddleware(mw: SyncMiddlewareAction): void;
+```
+
+#### Browser (CEF)
+
+```ts
+export declare function registerAsyncProcedure(name: string, method: AsyncAction): void;
+export declare function registerSyncProcedure(name: string, method: SyncAction): void;
+export declare function callClientAsync<TArgs>(name: string, args?: TArgs): void;
+export declare function callServerAsync<TArgs>(name: string, args?: TArgs): void;
+export declare function callClientSync<TResult, TArgs = undefined>(name: string, args?: TArgs, timeout?: number): Promise<TResult>;
+export declare function callServerSync<TResult, TArgs = undefined>(name: string, args?: TArgs, timeout?: number): Promise<TResult>;
+export declare function registerAsyncMiddleware(mw: AsyncMiddlewareAction): void;
+export declare function registerSyncMiddleware(mw: SyncMiddlewareAction): void;
 ```
 
 ## Documentation
